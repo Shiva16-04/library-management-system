@@ -16,7 +16,7 @@ import java.util.List;
 public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)//to generate author id automatically
-    Integer id;
+    int id;
 
     @Column(nullable = false)
     String name;

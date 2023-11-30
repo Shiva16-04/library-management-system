@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private UserServiceImpl userServiceImpl;
 
-    @PostMapping("/addUser")
+    @PostMapping("/addDetails")
     public ResponseEntity addUser(@RequestBody UserRequest userRequest){
         try {
             return new ResponseEntity<>(userServiceImpl.addUser(userRequest), HttpStatus.CREATED);
