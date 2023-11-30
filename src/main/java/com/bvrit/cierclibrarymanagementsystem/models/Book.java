@@ -3,10 +3,7 @@ package com.bvrit.cierclibrarymanagementsystem.models;
 import com.bvrit.cierclibrarymanagementsystem.enums.Availability;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
@@ -16,13 +13,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
     @Column(nullable = false, unique = true)
-    String bookName;
+    String name;
     @Column(nullable = false)
     int  price;
     @Column(nullable = false)
