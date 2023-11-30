@@ -1,6 +1,7 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -25,6 +26,11 @@ public class Author {
 
     @Column(nullable = false)
     double rating;
+
+    @Column(nullable = false, unique = true)
+    @Email(regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$", message = "should be a valid email address")
+    //validating email using RFC 5322 standard
+    String email;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     List<Book> bookList;

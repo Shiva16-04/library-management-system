@@ -16,7 +16,7 @@ public class BookController {
     private BookServiceImpl bookServiceImpl;
 
     @PostMapping("/addDetails")
-    public ResponseEntity addUser(@RequestBody BookRequest bookRequest, @RequestParam int authorId){
+    public ResponseEntity addDetails(@RequestBody BookRequest bookRequest, @RequestParam int authorId){
         try {
             return new ResponseEntity<>(bookServiceImpl.addDetails(bookRequest, authorId), HttpStatus.CREATED);
         } catch (Exception e) {

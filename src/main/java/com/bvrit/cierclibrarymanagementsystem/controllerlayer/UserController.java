@@ -16,7 +16,7 @@ public class UserController {
     private UserServiceImpl userServiceImpl;
 
     @PostMapping("/addDetails")
-    public ResponseEntity addUser(@RequestBody UserRequest userRequest){
+    public ResponseEntity addDetails(@RequestBody UserRequest userRequest){
         try {
             return new ResponseEntity<>(userServiceImpl.addUser(userRequest), HttpStatus.CREATED);
         } catch (Exception e) {

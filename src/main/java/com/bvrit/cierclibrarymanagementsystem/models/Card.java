@@ -23,6 +23,7 @@ public class Card {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     CardStatus status;
+
     @Column(nullable = false)
     Integer numberOfBooksIssued;
 

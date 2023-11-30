@@ -17,9 +17,9 @@ import java.util.Optional;
 @Service
 public class BookServiceImpl implements BookService {
     @Autowired
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
     @Autowired
-    AuthorRepository authorRepository;
+    private AuthorRepository authorRepository;
     public String addDetails(BookRequest bookRequest, int authorId)throws Exception{
 
         Optional<Author>optionalAuthor=authorRepository.findById(authorId);
