@@ -7,6 +7,7 @@ import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.models.*;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTrialRepository;
+import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookAndUserAuditTrialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,12 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     @Autowired
     private BookAndUserAuditTrialRepository bookAndUserAuditTrialRepository;
     @Autowired
+    private CardRepository cardRepository;
+    @Autowired
     private BookServiceImpl bookService;
     @Autowired
     private UserServiceImpl userService;
+
     private static final Integer FINE_PER_DAY = 5;
 
     public String issueBook(String userCode, String bookCode)throws Exception{
@@ -74,6 +78,9 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         bookAndUserAuditTrial.setReturnDate(LocalDate.now());
 
+        // saving the child of both the parents....cascading effect
+        bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
+
         return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
     }
     public int fineAmount(String userCode, String bookCode)throws Exception{
@@ -93,6 +100,10 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             fineAmount = Math.toIntExact((days - maxLimitDays) * FINE_PER_DAY);
         }
         card.setFineAmount(fineAmount);
+
+        //saving the card
+        cardRepository.save(card);
+
         return fineAmount;
     }
 }

@@ -12,4 +12,5 @@ public class UserRequest {
     BloodGroup bloodGroup;
     String contactNumber;
     String email;
+    String emailVerificationCode;
 }

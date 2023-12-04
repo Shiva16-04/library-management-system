@@ -1,6 +1,7 @@
 package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
 import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
+import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
@@ -36,9 +37,8 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyPresentException("User already Registered");
         }
         //validating the email of the user
-        String code=emailGenerator.userEmailValidationCodeGenerator();
-        mailSender("applicationtesting1604@gmail.com,userRequest.getEmail()",userRequest.getEmail(), code, "Email Validation Code");
-        if(!mailValidation(code)){
+        String codeFromUser=userRequest.getEmailVerificationCode();
+        if(!mailValidation(codeFromUser)){
             throw new InValidEmailVerificationCodeException("Invalid code. Email cannot be verified");
         }
 
@@ -48,6 +48,11 @@ public class UserServiceImpl implements UserService {
         //saves both user and card automatically because of cascading function
         User savedUser=userRepository.save(user);
         return "User "+savedUser.getUserName()+" has been registered successfully";
+    }
+    public void sendEmailValidationCode(UserEmailRequest userEmailRequest){
+        String email=userEmailRequest.getEmail();
+        String code=emailGenerator.userEmailValidationCodeGenerator();
+        mailSender("applicationtesting1604@gmail.com,userRequest.getEmail()",email, code, "Email Validation Code");
     }
 
     private void mailSender(String senderEmail, String recipientEmail, String body, String subject){
@@ -62,7 +67,7 @@ public class UserServiceImpl implements UserService {
         if(this.code.equals(code))return true;
         else return false;
     }
-    protected User findUserByUserCode(String userCode)throws Exception{
+    public User findUserByUserCode(String userCode)throws Exception{
         Optional<User>optionalUser=userRepository.findByUserCode(userCode);
         if(!optionalUser.isPresent()){
             throw new UserNotFoundException("User with the particular user code "+userCode+" is not present in the database");

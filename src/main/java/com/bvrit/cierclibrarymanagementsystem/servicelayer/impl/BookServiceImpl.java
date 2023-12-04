@@ -52,7 +52,7 @@ public class BookServiceImpl implements BookService {
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }
 
-    protected Book findBookByBookCode(String bookCode)throws Exception{
+    public Book findBookByBookCode(String bookCode)throws Exception{
         Optional<Book>optionalBook=bookRepository.findByBookCode(bookCode);
         if(!optionalBook.isPresent()){
             throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
