@@ -19,6 +19,9 @@ public class Author {
     @GeneratedValue(strategy = GenerationType.IDENTITY)//to generate author id automatically
     int id;
 
+    @Column(nullable = false, unique = true)
+    String authorCode;
+
     @Column(nullable = false)
     String name;
 

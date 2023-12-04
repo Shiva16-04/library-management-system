@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BloodGroup;
-import com.bvrit.cierclibrarymanagementsystem.enums.Occupation;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -20,12 +19,11 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
 
-    @Column(nullable = false)
-    String userName;
+    @Column(nullable = false, unique = true)
+    String userCode;
 
     @Column(nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    Occupation occupation;
+    String userName;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -43,4 +41,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JoinColumn
     Card card;
+
+
 }

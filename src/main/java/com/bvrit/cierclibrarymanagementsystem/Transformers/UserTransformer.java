@@ -6,9 +6,10 @@ import com.bvrit.cierclibrarymanagementsystem.models.User;
 
 public class UserTransformer {
     public static User userRequestToUser(UserRequest userRequest){
+        String email= userRequest.getEmail();
         return User.builder()
                 .userName(userRequest.getUserName())
-                .occupation(userRequest.getOccupation())
+                .userCode(email.substring(0, email.indexOf('@')))
                 .bloodGroup(userRequest.getBloodGroup())
                 .contactNumber(userRequest.getContactNumber())
                 .email(userRequest.getEmail())
@@ -17,7 +18,7 @@ public class UserTransformer {
     public static UserResponse userToUserResponse(User user){
         return UserResponse.builder()
                 .userName(user.getUserName())
-                .occupation(user.getOccupation())
+                .rollNumber(user.getUserCode())
                 .bloodGroup(user.getBloodGroup())
                 .contactNumber(user.getContactNumber())
                 .email(user.getEmail())

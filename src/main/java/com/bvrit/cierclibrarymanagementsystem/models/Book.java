@@ -1,10 +1,11 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
-import com.bvrit.cierclibrarymanagementsystem.enums.Availability;
+import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.List;
 
@@ -19,8 +20,14 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
+
+    @Column(unique = true, nullable = false)
+    String bookCode;
+
     @Column(nullable = false, unique = true)
     String name;
+    @Column(nullable = false) //no of days allotted to read the book
+    int  readTime;
     @Column(nullable = false)
     int  price;
     @Column(nullable = false)
@@ -32,12 +39,15 @@ public class Book {
     Genre genre;
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
-    Availability availability;
+    BookStatus bookStatus;
 
     @ManyToOne
     @JoinColumn
     Author author;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
-    List<Transaction> transactionList;
+    @ManyToOne(cascade = CascadeType.ALL)
+    Card card;
+
+    @OneToMany
+    List<BookAndUserAuditTrial> bookAndUserAuditTrialList;
 }

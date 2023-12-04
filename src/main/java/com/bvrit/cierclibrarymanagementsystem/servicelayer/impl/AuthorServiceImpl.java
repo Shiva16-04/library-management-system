@@ -4,7 +4,9 @@ import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorAlreadyPresentException;
+import com.bvrit.cierclibrarymanagementsystem.generators.AuthorCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
+import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
@@ -18,15 +20,27 @@ public class AuthorServiceImpl implements AuthorService {
     @Autowired
     private AuthorRepository authorRepository;
 
-    public String addDetails(AuthorRequest authorRequest)throws Exception{
+    @Autowired
+    private AuthorCodeGenerator authorCodeGenerator;
+
+    public String addAuthor(AuthorRequest authorRequest)throws Exception{
         Optional<Author>optionalAuthor=authorRepository.findByEmail(authorRequest.getEmail());
         if(optionalAuthor.isPresent()){
             throw new AuthorAlreadyPresentException("Author "+authorRequest.getName()+" is already present in the database with author id "+optionalAuthor.get().getId());
         }
         Author author=optionalAuthor.get();
+
+        //setting attribute
+        String authorCode= authorCodeGenerator.generate("ATR");
+        author.setAuthorCode(authorCode);
+
+        //saving the author to the database
         authorRepository.save(author);
         return "Author "+authorRequest.getName()+" is successfully added to the database";
     }
 
-
+    protected Optional<Author> findAuthorByAuthorCode(String authorCode){
+        Optional<Author>optionalAuthor=authorRepository.findByAuthorCode(authorCode);
+        return optionalAuthor;
+    }
 }

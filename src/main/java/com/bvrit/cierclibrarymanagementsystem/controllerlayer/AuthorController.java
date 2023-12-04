@@ -15,12 +15,13 @@ public class AuthorController {
     @Autowired
     private AuthorServiceImpl authorServiceImpl;
 
-    @PostMapping("/addDetails")
-    public ResponseEntity addDetails(@RequestBody AuthorRequest authorRequest){
+    @PostMapping("/add-author")
+    public ResponseEntity addAuthor(@RequestBody AuthorRequest authorRequest){
         try {
-            return new ResponseEntity<>(authorServiceImpl.addDetails(authorRequest), HttpStatus.CREATED);
+            return new ResponseEntity<>(authorServiceImpl.addAuthor(authorRequest), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
 }

@@ -15,10 +15,10 @@ public class BookController {
     @Autowired
     private BookServiceImpl bookServiceImpl;
 
-    @PostMapping("/addDetails")
-    public ResponseEntity addDetails(@RequestBody BookRequest bookRequest, @RequestParam int authorId){
+    @PostMapping("/add-book")
+    public ResponseEntity addBook(@RequestBody BookRequest bookRequest, @RequestParam String authorCode) {
         try {
-            return new ResponseEntity<>(bookServiceImpl.addDetails(bookRequest, authorId), HttpStatus.CREATED);
+            return new ResponseEntity<>(bookServiceImpl.addBook(bookRequest, authorCode), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

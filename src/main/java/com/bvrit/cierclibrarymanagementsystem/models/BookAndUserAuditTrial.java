@@ -1,13 +1,13 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
-import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.apache.tomcat.jni.Library;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -17,29 +17,26 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Transaction {
+public class BookAndUserAuditTrial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
-    int fineAmount;
-
     @CreationTimestamp
-    Date createdOn;
+    Date issueDate;
 
     @UpdateTimestamp
     Date lastModifiedOn;
 
     @Enumerated(value = EnumType.STRING)
-    TransactionStatus transactionStatus;
+    BookAndUserAuditStatus status;
 
-    Date returnDate;
+    LocalDate returnDate;
 
-    @ManyToOne
-    @JoinColumn
+    @ManyToOne (cascade = CascadeType.ALL)
+    Card card;
+
+    @ManyToOne (cascade = CascadeType.ALL)
     Book book;
 
-    @ManyToOne
-    @JoinColumn
-    Card card;
 }

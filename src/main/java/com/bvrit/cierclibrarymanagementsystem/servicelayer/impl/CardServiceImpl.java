@@ -17,6 +17,10 @@ public class CardServiceImpl implements CardService {
     public Card createCard(User user){
         Card card= CardTransformer.cardRequestToCard();
 
+        //setting the attribute cardId by extracting local part of email
+        String email= user.getEmail();
+        card.setCardCode(email.substring(0,email.indexOf('@')));
+
         //setting foreign keys
         card.setUser(user);
 

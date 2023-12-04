@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookRequest {
     String name;
+    int readTime;
     int  price;
     int noOfPages;
     double rating;

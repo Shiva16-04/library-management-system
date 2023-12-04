@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.sql.Blob;
 import java.util.List;
 
 @Entity
@@ -19,6 +18,11 @@ public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
+    @Column(nullable = false, unique = true) //it will be the local part of user email id which is the roll number of the student
+    String cardCode;
+
+    @Column(nullable = false, unique = true)
+    int fineAmount;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -31,6 +35,9 @@ public class Card {
     @JoinColumn
     User user;
 
+    @OneToMany
+    List<BookAndUserAuditTrial> bookAndUserAuditTrialList;
+
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
-    List<Transaction> transactionList;
+    List<Book> bookList;
 }
