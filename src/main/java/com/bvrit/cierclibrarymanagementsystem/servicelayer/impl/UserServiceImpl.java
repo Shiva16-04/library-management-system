@@ -57,8 +57,9 @@ public class UserServiceImpl implements UserService {
         String email=userEmailRequest.getEmail();
         String code=emailGenerator.userEmailValidationCodeGenerator();
         Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
-        UserEmailVerificationCode userEmailVerificationCode=optionalUserEmailVerificationCode.get();
+
         if(optionalUserEmailVerificationCode.isPresent()){
+            UserEmailVerificationCode userEmailVerificationCode=optionalUserEmailVerificationCode.get();
             userEmailVerificationCode.setVerificationCode(code);
             userEmailVerificationCodeRepository.save(userEmailVerificationCode);
         }else{

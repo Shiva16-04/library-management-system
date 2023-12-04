@@ -21,7 +21,7 @@ public class Card {
     @Column(nullable = false, unique = true) //it will be the local part of user email id which is the roll number of the student
     String cardCode;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     int fineAmount;
 
     @Column(nullable = false)
