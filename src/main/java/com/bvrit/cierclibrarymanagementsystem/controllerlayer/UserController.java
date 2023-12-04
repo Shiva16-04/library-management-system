@@ -19,8 +19,12 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/user-email-validation")
-    public void sendEmailValidationCode(@RequestBody UserEmailRequest userEmailRequest){
-       userService.sendEmailValidationCode(userEmailRequest);
+    public ResponseEntity sendEmailValidationCode(@RequestBody UserEmailRequest userEmailRequest){
+      try {
+          return new ResponseEntity<>(userService.sendEmailValidationCode(userEmailRequest), HttpStatus.OK);
+      }catch (Exception e){
+          return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+      }
     }
 
     @PostMapping("/addDetails")

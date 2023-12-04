@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
         User savedUser=userRepository.save(user);
         return "User "+savedUser.getUserName()+" has been registered successfully";
     }
-    public void sendEmailValidationCode(UserEmailRequest userEmailRequest){
+    public String sendEmailValidationCode(UserEmailRequest userEmailRequest)throws Exception{
         String email=userEmailRequest.getEmail();
         String code=emailGenerator.userEmailValidationCodeGenerator();
         Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
             userEmailVerificationCodeService.addUserEmailVerificationCode(new UserEmailVerificationCodeRequest(email, code));
         }
         mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
+        return "Verification code sent successfully to the mail"+email;
     }
 
     private void mailSender(String senderEmail, String recipientEmail, String body, String subject){

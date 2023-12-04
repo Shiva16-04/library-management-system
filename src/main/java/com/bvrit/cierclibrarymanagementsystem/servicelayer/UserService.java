@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 public interface UserService {
     public String addUser(UserRequest userRequest)throws Exception;
-    public void sendEmailValidationCode(UserEmailRequest userEmailRequest);
+    public String sendEmailValidationCode(UserEmailRequest userEmailRequest) throws Exception;
     private void mailSender(String senderEmail, String recipientEmail, String body, String subject){
 
     }

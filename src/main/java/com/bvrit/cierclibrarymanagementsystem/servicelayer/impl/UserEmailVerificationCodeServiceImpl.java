@@ -19,7 +19,7 @@ public class UserEmailVerificationCodeServiceImpl implements UserEmailVerificati
         Optional<UserEmailVerificationCode>userEmailVerificationCode=userEmailVerificationCodeRepository.findByEmail(email);
         return userEmailVerificationCode;
     }
-    public void addUserEmailVerificationCode(UserEmailVerificationCodeRequest userEmailVerificationCodeRequest){
+    public void addUserEmailVerificationCode(UserEmailVerificationCodeRequest userEmailVerificationCodeRequest)throws Exception{
         UserEmailVerificationCode userEmailVerificationCode= UserEmailVerificationCodeTransformer.UserEmailVerificationCodeRequestToUserEmailVerificationCode(userEmailVerificationCodeRequest);
         userEmailVerificationCodeRepository.save(userEmailVerificationCode);
     }

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface UserEmailVerificationCodeService {
     public Optional<UserEmailVerificationCode> findUserEmailVerificationCode(String email);
-    public void addUserEmailVerificationCode(UserEmailVerificationCodeRequest userEmailVerificationCodeRequest);
+    public void addUserEmailVerificationCode(UserEmailVerificationCodeRequest userEmailVerificationCodeRequest)throws Exception;
 }
