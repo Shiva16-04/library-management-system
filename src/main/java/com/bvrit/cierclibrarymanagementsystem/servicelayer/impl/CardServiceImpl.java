@@ -3,7 +3,6 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.CardTransformer;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
-import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
 import org.springframework.beans.factory.annotation.Autowired;

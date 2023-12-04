@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
-import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.BookServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/book")
 public class BookController {
     @Autowired
-    private BookServiceImpl bookServiceImpl;
+    private BookService bookService;
 
     @PostMapping("/add-book")
     public ResponseEntity addBook(@RequestBody BookRequest bookRequest, @RequestParam String authorCode) {
         try {
-            return new ResponseEntity<>(bookServiceImpl.addBook(bookRequest, authorCode), HttpStatus.CREATED);
+            return new ResponseEntity<>(bookService.addBook(bookRequest, authorCode), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

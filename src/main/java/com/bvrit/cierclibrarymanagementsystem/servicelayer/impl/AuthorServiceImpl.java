@@ -1,13 +1,9 @@
 package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
-import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
-import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorAlreadyPresentException;
 import com.bvrit.cierclibrarymanagementsystem.generators.AuthorCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
-import com.bvrit.cierclibrarymanagementsystem.models.Book;
-import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +35,7 @@ public class AuthorServiceImpl implements AuthorService {
         return "Author "+authorRequest.getName()+" is successfully added to the database";
     }
 
-    protected Optional<Author> findAuthorByAuthorCode(String authorCode){
+    public Optional<Author> findAuthorByAuthorCode(String authorCode){
         Optional<Author>optionalAuthor=authorRepository.findByAuthorCode(authorCode);
         return optionalAuthor;
     }

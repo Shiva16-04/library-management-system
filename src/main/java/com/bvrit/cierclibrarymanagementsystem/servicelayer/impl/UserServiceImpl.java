@@ -2,6 +2,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
 import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
+import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerificationCodeRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
@@ -9,6 +10,8 @@ import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
+import com.bvrit.cierclibrarymanagementsystem.models.UserEmailVerificationCode;
+import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserEmailVerificationCodeRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
@@ -22,14 +25,17 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
-    private CardServiceImpl cardServiceImpl;
+    private CardService cardService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private JavaMailSender mailSender;
     @Autowired
     private EmailGenerator emailGenerator;
-    private String code;
+    @Autowired
+    private UserEmailVerificationCodeServiceImpl userEmailVerificationCodeService;
+    @Autowired
+    private UserEmailVerificationCodeRepository userEmailVerificationCodeRepository;
 
     public String addUser(UserRequest userRequest)throws Exception{
         Optional<User>optionalUser=userRepository.findByEmail(userRequest.getEmail());
@@ -38,12 +44,10 @@ public class UserServiceImpl implements UserService {
         }
         //validating the email of the user
         String codeFromUser=userRequest.getEmailVerificationCode();
-        if(!mailValidation(codeFromUser)){
-            throw new InValidEmailVerificationCodeException("Invalid code. Email cannot be verified");
-        }
+        mailValidation(userRequest.getEmail(), codeFromUser);
 
         User user= UserTransformer.userRequestToUser(userRequest);
-        Card card=cardServiceImpl.createCard(user);
+        Card card= cardService.createCard(user);
 
         //saves both user and card automatically because of cascading function
         User savedUser=userRepository.save(user);
@@ -52,7 +56,15 @@ public class UserServiceImpl implements UserService {
     public void sendEmailValidationCode(UserEmailRequest userEmailRequest){
         String email=userEmailRequest.getEmail();
         String code=emailGenerator.userEmailValidationCodeGenerator();
-        mailSender("applicationtesting1604@gmail.com,userRequest.getEmail()",email, code, "Email Validation Code");
+        Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
+        UserEmailVerificationCode userEmailVerificationCode=optionalUserEmailVerificationCode.get();
+        if(optionalUserEmailVerificationCode.isPresent()){
+            userEmailVerificationCode.setVerificationCode(code);
+            userEmailVerificationCodeRepository.save(userEmailVerificationCode);
+        }else{
+            userEmailVerificationCodeService.addUserEmailVerificationCode(new UserEmailVerificationCodeRequest(email, code));
+        }
+        mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
     }
 
     private void mailSender(String senderEmail, String recipientEmail, String body, String subject){
@@ -63,9 +75,15 @@ public class UserServiceImpl implements UserService {
         mailMessage.setText(body);
         mailSender.send(mailMessage);
     }
-    private boolean mailValidation(String code){
-        if(this.code.equals(code))return true;
-        else return false;
+    private boolean mailValidation(String email, String code)throws Exception{
+        Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
+        if(optionalUserEmailVerificationCode.isPresent()){
+            String userEmailCode=optionalUserEmailVerificationCode.get().getVerificationCode();
+            if(userEmailCode.equals(code))return true;
+            else throw  new InValidEmailVerificationCodeException("Invalid Code");
+        }else{
+            throw  new InValidEmailVerificationCodeException("Invalid Code");
+        }
     }
     public User findUserByUserCode(String userCode)throws Exception{
         Optional<User>optionalUser=userRepository.findByUserCode(userCode);
@@ -74,4 +92,5 @@ public class UserServiceImpl implements UserService {
         }
         return optionalUser.get();
     }
+
 }

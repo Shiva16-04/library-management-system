@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("issue-return")
 public class BookAndUserAuditTrialController {
     @Autowired
-    private BookAndUserAuditTrialServiceImpl bookAndUserAuditTrialServiceImpl;
+    private BookAndUserAuditTrialService bookAndUserAuditTrialService;
 
     @PostMapping("/issue-book")
     public ResponseEntity issueBook(@RequestParam String userCode, @RequestParam String bookCode){
         try {
-            return new ResponseEntity<>(bookAndUserAuditTrialServiceImpl.issueBook(userCode, bookCode), HttpStatus.OK);
+            return new ResponseEntity<>(bookAndUserAuditTrialService.issueBook(userCode, bookCode), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -27,7 +27,7 @@ public class BookAndUserAuditTrialController {
     @PostMapping("/return-book")
     public ResponseEntity returnBook(@RequestParam String userCode, @RequestParam String bookCode){
         try {
-            return new ResponseEntity(bookAndUserAuditTrialServiceImpl.returnBook(userCode, bookCode), HttpStatus.ACCEPTED);
+            return new ResponseEntity(bookAndUserAuditTrialService.returnBook(userCode, bookCode), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

@@ -3,6 +3,8 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
+import org.springframework.stereotype.Service;
+
 
 public interface UserService {
     public String addUser(UserRequest userRequest)throws Exception;

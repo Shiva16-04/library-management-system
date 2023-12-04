@@ -3,7 +3,6 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.BookAlreadyPresentException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.BookCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;

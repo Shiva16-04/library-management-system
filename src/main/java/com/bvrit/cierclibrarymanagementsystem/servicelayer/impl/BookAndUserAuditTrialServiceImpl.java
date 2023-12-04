@@ -3,20 +3,20 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
-import com.bvrit.cierclibrarymanagementsystem.models.*;
+import com.bvrit.cierclibrarymanagementsystem.models.Book;
+import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
+import com.bvrit.cierclibrarymanagementsystem.models.Card;
+import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTrialRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookAndUserAuditTrialService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -26,9 +26,9 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     @Autowired
     private CardRepository cardRepository;
     @Autowired
-    private BookServiceImpl bookService;
+    private BookService bookService;
     @Autowired
-    private UserServiceImpl userService;
+    private UserService userService;
 
     private static final Integer FINE_PER_DAY = 5;
 
