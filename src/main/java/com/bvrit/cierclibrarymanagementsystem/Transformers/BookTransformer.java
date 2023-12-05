@@ -10,6 +10,7 @@ public class BookTransformer {
         return Book.builder()
                 .name(bookRequest.getName())
                 .price(bookRequest.getPrice())
+                .readTime(bookRequest.getReadTime())
                 .noOfPages(bookRequest.getNoOfPages())
                 .rating(bookRequest.getRating())
                 .genre(bookRequest.getGenre())
@@ -19,6 +20,7 @@ public class BookTransformer {
     public static BookResponse bookToBookResponse(Book book){
         return BookResponse.builder()
                 .name(book.getName())
+                .readTime(book.getReadTime())
                 .price(book.getPrice())
                 .noOfPages(book.getNoOfPages())
                 .rating(book.getRating())

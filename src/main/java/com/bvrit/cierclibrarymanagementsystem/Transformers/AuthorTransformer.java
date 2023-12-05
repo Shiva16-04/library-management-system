@@ -10,6 +10,7 @@ public class AuthorTransformer {
                 .name(authorRequest.getName())
                 .age(authorRequest.getAge())
                 .rating(authorRequest.getRating())
+                .email(authorRequest.getEmail())
                 .build();
     }
     public static AuthorResponse authorToAuthorResponse(Author author){
@@ -17,6 +18,7 @@ public class AuthorTransformer {
                 .name(author.getName())
                 .age(author.getAge())
                 .rating(author.getRating())
+                .email(author.getEmail())
                 .build();
     }
 }

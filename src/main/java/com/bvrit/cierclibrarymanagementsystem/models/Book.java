@@ -45,7 +45,7 @@ public class Book {
     @JoinColumn
     Author author;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     Card card;
 
     @OneToMany

@@ -45,7 +45,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         //setting the foreign keys
         bookAndUserAuditTrial.setBook(book);
-        bookAndUserAuditTrial.setCard(user.getCard());
+        bookAndUserAuditTrial.setCard(card);
 
         //bidirectionally mapping
         book.getBookAndUserAuditTrialList().add(bookAndUserAuditTrial);

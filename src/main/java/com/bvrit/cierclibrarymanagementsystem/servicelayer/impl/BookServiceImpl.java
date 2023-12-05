@@ -27,7 +27,7 @@ public class BookServiceImpl implements BookService {
 
     public String addBook(BookRequest bookRequest, String authorCode)throws Exception{
 
-        Optional<Author>optionalAuthor=authorRepository.findByAuthorCode(authorCode);
+        Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
         if(!optionalAuthor.isPresent()){
             throw new AuthorNotFoundException("Author with "+authorCode+" is not present in the database");
         }

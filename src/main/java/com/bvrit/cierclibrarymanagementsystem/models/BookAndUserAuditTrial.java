@@ -1,6 +1,7 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -33,10 +34,10 @@ public class BookAndUserAuditTrial {
 
     LocalDate returnDate;
 
-    @ManyToOne (cascade = CascadeType.ALL)
+    @ManyToOne
     Card card;
 
-    @ManyToOne (cascade = CascadeType.ALL)
+    @ManyToOne
     Book book;
 
 }
