@@ -2,6 +2,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
 import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
+import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.BookCodeGenerator;
@@ -13,6 +14,8 @@ import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -50,9 +53,27 @@ public class BookServiceImpl implements BookService {
 
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }
+    public BookResponse getBookByBookCode(String bookCode) throws BookNotFoundException {
+        Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
+        if(!optionalBook.isPresent()){
+            throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
+        }
+        Book book=optionalBook.get();
+        BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
+        return bookResponse;
+    }
+    public List<BookResponse> getBookListByBookName(String bookName){
+        List<Book>bookList=bookRepository.findByName(bookName);
+        List<BookResponse>bookResponseList=new ArrayList<>();
+        for(Book book: bookList){
+            BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
+            bookResponseList.add(bookResponse);
+        }
+        return bookResponseList;
+    }
 
     public Book findBookByBookCode(String bookCode)throws Exception{
-        Optional<Book>optionalBook=bookRepository.findByBookCode(bookCode);
+        Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
         if(!optionalBook.isPresent()){
             throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
         }

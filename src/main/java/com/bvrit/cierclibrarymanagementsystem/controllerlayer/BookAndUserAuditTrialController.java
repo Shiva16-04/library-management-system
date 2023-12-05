@@ -5,10 +5,7 @@ import com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.BookAndUserAudit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("issue-return")
@@ -28,6 +25,14 @@ public class BookAndUserAuditTrialController {
     public ResponseEntity returnBook(@RequestParam String userCode, @RequestParam String bookCode){
         try {
             return new ResponseEntity(bookAndUserAuditTrialService.returnBook(userCode, bookCode), HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/calculate-fine-amount")
+    public ResponseEntity calculateFineAmount(@RequestParam String userCode, @RequestParam String bookCode){
+        try {
+            return new ResponseEntity(bookAndUserAuditTrialService.calculateFineAmount(userCode, bookCode), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

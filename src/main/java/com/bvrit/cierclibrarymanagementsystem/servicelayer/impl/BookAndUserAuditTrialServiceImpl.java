@@ -3,6 +3,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.UserBookIssueMismatchException;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
@@ -35,7 +36,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     public String issueBook(String userCode, String bookCode)throws Exception{
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
-        Card card=book.getCard();
+        Card card=user.getCard();
 
 
         BookAndUserAuditTrial bookAndUserAuditTrial=new BookAndUserAuditTrial();
@@ -64,10 +65,10 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
          return "Book "+book.getName()+" is successfully issued to the user "+user.getUserName();
     }
     public String returnBook(String userCode, String bookCode)throws Exception{
-        int fineAmount=fineAmount(userCode, bookCode);
+        int fineAmount=calculateFineAmount(userCode, bookCode);
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
-        Card card=book.getCard();
+        Card card=user.getCard();
         BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookAndCardAndStatus(book, card, BookAndUserAuditStatus.ISSUED);
 
         card.setFineAmount(0);
@@ -77,16 +78,26 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         book.setCard(null);
 
         bookAndUserAuditTrial.setReturnDate(LocalDate.now());
+        bookAndUserAuditTrial.setStatus(BookAndUserAuditStatus.RETURNED);
 
         // saving the child of both the parents....cascading effect
         bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
 
         return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
     }
-    public int fineAmount(String userCode, String bookCode)throws Exception{
+    public int calculateFineAmount(String userCode, String bookCode)throws Exception{
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
-        Card card=book.getCard();
+        Card card=user.getCard();
+
+
+        String receivedCardCode=card.getCardCode();
+        String actualCardCode=book.getCard().getCardCode();
+
+        //handled exception when the book is not issued to the particular user
+        if(!receivedCardCode.equalsIgnoreCase(actualCardCode)){
+            throw new UserBookIssueMismatchException("Book "+book.getName()+"("+bookCode+")"+" is not issued to user "+user.getUserName()+"("+bookCode+")");
+        }
 
         BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookAndCardAndStatus(book, card, BookAndUserAuditStatus.ISSUED);
         Date issueDate=bookAndUserAuditTrial.getIssueDate();

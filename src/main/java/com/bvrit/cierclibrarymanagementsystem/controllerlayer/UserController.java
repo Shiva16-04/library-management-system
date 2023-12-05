@@ -34,8 +34,8 @@ public class UserController {
         }
     }
 
-    @GetMapping("/find-user-by-user-code")
-    public ResponseEntity getUserByUserCode(@RequestParam String userCode){
+    @GetMapping("/find-user-by-user-code/{userCode}")
+    public ResponseEntity getUserByUserCode(@PathVariable ("userCode") String userCode){
         try {
             return new ResponseEntity<>(userService.getUserByUserCode(userCode), HttpStatus.OK);
         } catch (UserNotFoundException e) {
