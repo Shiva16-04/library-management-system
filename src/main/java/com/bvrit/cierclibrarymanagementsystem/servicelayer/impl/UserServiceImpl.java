@@ -4,6 +4,7 @@ import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerificationCodeRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
+import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private UserEmailVerificationCodeRepository userEmailVerificationCodeRepository;
 
     public String addUser(UserRequest userRequest)throws Exception{
-        Optional<User>optionalUser=userRepository.findByEmail(userRequest.getEmail());
+        Optional<User>optionalUser=userRepository.findUserByEmail(userRequest.getEmail());
         if(optionalUser.isPresent()){
             throw new UserAlreadyPresentException("User already Registered");
         }
@@ -87,8 +88,26 @@ public class UserServiceImpl implements UserService {
             throw  new InValidEmailVerificationCodeException("Invalid Code");
         }
     }
+    public UserResponse getUserByUserCode(String userCode) throws UserNotFoundException {
+        Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
+        if(!optionalUser.isPresent()){
+            throw new UserNotFoundException("User with the particular user code "+userCode+" is not present in the database");
+        }
+        User user=optionalUser.get();
+        UserResponse userResponse=UserTransformer.userToUserResponse(user);
+        return userResponse;
+    }
+    public UserResponse getUserByUserEmail(String userEmail) throws UserNotFoundException {
+        Optional<User>optionalUser=userRepository.findUserByEmail(userEmail);
+        if(!optionalUser.isPresent()){
+            throw new UserNotFoundException("User with the particular user email "+userEmail+" is not present in the database");
+        }
+        User user=optionalUser.get();
+        UserResponse userResponse=UserTransformer.userToUserResponse(user);
+        return userResponse;
+    }
     public User findUserByUserCode(String userCode)throws Exception{
-        Optional<User>optionalUser=userRepository.findByUserCode(userCode);
+        Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
         if(!optionalUser.isPresent()){
             throw new UserNotFoundException("User with the particular user code "+userCode+" is not present in the database");
         }
