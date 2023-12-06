@@ -15,13 +15,14 @@ import com.bvrit.cierclibrarymanagementsystem.models.UserEmailVerificationCode;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserEmailVerificationCodeRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.senderEmail;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,7 +31,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private JavaMailSender mailSender;
+    private MailConfigurationService mailConfigurationService;
     @Autowired
     private EmailGenerator emailGenerator;
     @Autowired
@@ -52,6 +53,11 @@ public class UserServiceImpl implements UserService {
 
         //saves both user and card automatically because of cascading function
         User savedUser=userRepository.save(user);
+
+        //sending registration confirmation mail to the user
+        String emailBody=emailGenerator.userSuccessfulRegistrationMessageEmailGenerator(user.getUserName());
+        mailConfigurationService.mailSender(senderEmail,user.getEmail(), emailBody, "User Registration Confirmation");
+
         return "User "+savedUser.getUserName()+" has been registered successfully";
     }
     public String sendEmailValidationCode(UserEmailRequest userEmailRequest)throws Exception{
@@ -66,28 +72,11 @@ public class UserServiceImpl implements UserService {
         }else{
             userEmailVerificationCodeService.addUserEmailVerificationCode(new UserEmailVerificationCodeRequest(email, code));
         }
-        mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
+        mailConfigurationService.mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
         return "Verification code sent successfully to the mail"+email;
     }
 
-    private void mailSender(String senderEmail, String recipientEmail, String body, String subject){
-        SimpleMailMessage mailMessage=new SimpleMailMessage();
-        mailMessage.setFrom(senderEmail);
-        mailMessage.setTo(recipientEmail);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(body);
-        mailSender.send(mailMessage);
-    }
-    private boolean mailValidation(String email, String code)throws Exception{
-        Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
-        if(optionalUserEmailVerificationCode.isPresent()){
-            String userEmailCode=optionalUserEmailVerificationCode.get().getVerificationCode();
-            if(userEmailCode.equals(code))return true;
-            else throw  new InValidEmailVerificationCodeException("Invalid Code");
-        }else{
-            throw  new InValidEmailVerificationCodeException("Invalid Code");
-        }
-    }
+
     public UserResponse getUserByUserCode(String userCode) throws UserNotFoundException {
         Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
         if(!optionalUser.isPresent()){
@@ -105,6 +94,18 @@ public class UserServiceImpl implements UserService {
         User user=optionalUser.get();
         UserResponse userResponse=UserTransformer.userToUserResponse(user);
         return userResponse;
+    }
+
+    //below methods are used for internal purposes...not for api calling
+    private boolean mailValidation(String email, String code)throws Exception{
+        Optional<UserEmailVerificationCode> optionalUserEmailVerificationCode=userEmailVerificationCodeService.findUserEmailVerificationCode(email);
+        if(optionalUserEmailVerificationCode.isPresent()){
+            String userEmailCode=optionalUserEmailVerificationCode.get().getVerificationCode();
+            if(userEmailCode.equals(code))return true;
+            else throw  new InValidEmailVerificationCodeException("Invalid Code");
+        }else{
+            throw  new InValidEmailVerificationCodeException("Invalid Code");
+        }
     }
     public User findUserByUserCode(String userCode)throws Exception{
         Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);

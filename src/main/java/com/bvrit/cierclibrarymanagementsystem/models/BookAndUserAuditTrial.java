@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -24,15 +25,18 @@ public class BookAndUserAuditTrial {
     int id;
 
     @CreationTimestamp
-    Date issueDate;
+    LocalDate issueDate;
+
+    @Column(nullable = false)
+    LocalDate returnDate;
+
+    LocalDate returnedOn;
 
     @UpdateTimestamp
-    Date lastModifiedOn;
+    LocalDateTime lastModifiedOn;
 
     @Enumerated(value = EnumType.STRING)
     BookAndUserAuditStatus status;
-
-    LocalDate returnDate;
 
     @ManyToOne
     Card card;

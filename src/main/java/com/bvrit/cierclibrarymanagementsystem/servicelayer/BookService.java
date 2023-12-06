@@ -4,6 +4,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeRemovedFromDatabaseException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,4 +21,5 @@ public interface BookService {
     public List<BookResponse> getBookListByGenre(Genre genre);
     public List<BookResponse> getBookListByBookStatus(BookStatus bookStatus);
     public Book findBookByBookCode(String bookCode)throws Exception;
+    public String deleteBookByBookCode(List<String> bookCodeList) throws Exception;
 }

@@ -10,5 +10,6 @@ import java.util.List;
 
 public interface BookAndUserAuditTrialRepository extends JpaRepository<BookAndUserAuditTrial, Integer> {
     BookAndUserAuditTrial findByBookAndCardAndStatus(Book book, Card card, BookAndUserAuditStatus status);
+    List<BookAndUserAuditTrial> findByStatusIn(List<BookAndUserAuditStatus> bookAndUserAuditStatusList);
     List<BookAndUserAuditTrial> findByStatus(BookAndUserAuditStatus bookAndUserAuditStatus);
 }

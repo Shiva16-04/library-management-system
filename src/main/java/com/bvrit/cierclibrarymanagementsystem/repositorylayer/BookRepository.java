@@ -15,8 +15,11 @@ import java.util.Optional;
 public interface BookRepository extends JpaRepository<Book, Integer> {
     Optional<Book> findBookByBookCode(String bookCode);
     List<Book> findBookByName(String bookName);
+    String findBookNameByBookCode(String bookCode);
     List<Book> findBookListByBookStatus(BookStatus bookStatus);
     List<Book> findBookListByGenre(Genre genre);
+    Optional<BookStatus> findByBookCode(String bookCode);
+//    void deleteByBookCode(String bookCode);
     @Query(value = "SELECT MAX(CAST(SUBSTRING(book_code, 7) AS SIGNED)) FROM book WHERE SUBSTRING(book_code, 1, 4) = :year", nativeQuery = true)
     Long findLatestSequenceNumber(@Param("year") String year);
     @Transactional

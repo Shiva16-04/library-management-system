@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("issue-return")
 public class BookAndUserAuditTrialController {
@@ -39,13 +41,14 @@ public class BookAndUserAuditTrialController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
     @GetMapping("/get-active-book-borrowers-list")
     public ResponseEntity getActiveBookBorrowersList(){
         return new ResponseEntity(bookAndUserAuditTrialService.getActiveBookBorrowersList(), HttpStatus.OK);
     }
-    @GetMapping("/get-user-book-issue-return-record-list")
-    public ResponseEntity getUserBookIssueReturnRecordListByStatus(BookAndUserAuditStatus bookAndUserAuditStatus){
-        return new ResponseEntity(bookAndUserAuditTrialService.getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatus), HttpStatus.OK);
+    @GetMapping("/get-user-book-issue-return-record-list-by-status")
+    public ResponseEntity getUserBookIssueReturnRecordListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList){
+        return new ResponseEntity(bookAndUserAuditTrialService.getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList), HttpStatus.OK);
     }
 
 }

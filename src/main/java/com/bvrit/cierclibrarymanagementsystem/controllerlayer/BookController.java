@@ -3,6 +3,8 @@ package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeRemovedFromDatabaseException;
+import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import java.util.List;
 public class BookController {
     @Autowired
     private BookService bookService;
+    @Autowired
+    private BookRepository bookRepository;
 
 
     @PostMapping("/add-book")
@@ -52,14 +56,19 @@ public class BookController {
     }
 
     @GetMapping("/get-book-list-by-book-status")
-    public ResponseEntity getUnAvailableBookList(@RequestParam BookStatus bookStatus){
+    public ResponseEntity getBookListByBookStatus(@RequestParam BookStatus bookStatus){
         return new ResponseEntity(bookService.getBookListByBookStatus(bookStatus),HttpStatus.OK);
     }
 
 
     @DeleteMapping("/delete-book")
-    public ResponseEntity deleteBookByBookCode(@RequestParam String bookCode){
-        return new ResponseEntity<>("",HttpStatus.OK);
+    public ResponseEntity deleteBookByBookCode(@RequestParam List<String> bookCodeList){
+        try {
+            return new ResponseEntity<>(bookService.deleteBookByBookCode(bookCodeList),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 
 }

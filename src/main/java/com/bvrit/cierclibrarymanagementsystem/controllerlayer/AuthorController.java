@@ -50,7 +50,7 @@ public class AuthorController {
     @DeleteMapping("/delete-author-by-author-code")
     public ResponseEntity deleteAuthorByAuthorCode(@RequestParam String authorCode){
         try {
-            return new ResponseEntity<>("", HttpStatus.OK);
+            return new ResponseEntity<>(authorService.deleteAuthorByAuthorCode(authorCode), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

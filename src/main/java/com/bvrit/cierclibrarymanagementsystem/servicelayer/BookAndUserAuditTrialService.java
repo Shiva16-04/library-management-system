@@ -12,6 +12,6 @@ public interface BookAndUserAuditTrialService {
     public String issueBook(String userCode, String bookCode)throws Exception;
     public String returnBook(String userCode, String bookCode)throws Exception;
     public int calculateFineAmount(String userCode, String bookCode)throws Exception;
-    public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(BookAndUserAuditStatus bookAndUserAuditStatus);
+    public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList);
     public List<UserResponse> getActiveBookBorrowersList();
 }

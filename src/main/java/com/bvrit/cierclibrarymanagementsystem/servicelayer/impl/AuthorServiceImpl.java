@@ -5,13 +5,16 @@ import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.AuthorResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorAlreadyPresentException;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorCannotBeRemovedFromDatabaseException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.AuthorCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +26,6 @@ import java.util.Optional;
 public class AuthorServiceImpl implements AuthorService {
     @Autowired
     private AuthorRepository authorRepository;
-
     @Autowired
     private AuthorCodeGenerator authorCodeGenerator;
 
@@ -42,7 +44,19 @@ public class AuthorServiceImpl implements AuthorService {
         authorRepository.save(author);
         return "Author "+authorRequest.getName()+" is successfully added to the database";
     }
+    public String deleteAuthorByAuthorCode(String authorCode) throws Exception{
+        Author author=getAuthorEntityByAuthorCode(authorCode);
+        List<Book>bookList=author.getBookList();
 
+        for(Book book: bookList){
+            if(book.getBookStatus()!= BookStatus.AVAILABLE){
+                throw new AuthorCannotBeRemovedFromDatabaseException("Author "+author.getName()+" cannot be removed from the database because, book "+book.getName()+" is not available." +
+                        "\nTo delete the author, status of all books of the author should be AVAILABLE");
+            }
+        }
+        authorRepository.deleteById(author.getId());
+        return "Author "+author.getName()+" is removed from the database successfully";
+    }
     //searching authors (or) finding authors with author code and author mail id which are unique
     public AuthorResponse findAuthorByAuthorCode(String authorCode) throws AuthorNotFoundException {
         Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
@@ -74,6 +88,12 @@ public class AuthorServiceImpl implements AuthorService {
         return bookResponseList;
     }
 
-
+    private Author getAuthorEntityByAuthorCode(String authorCode) throws AuthorNotFoundException {
+        Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
+        if(!optionalAuthor.isPresent()){
+            throw new AuthorNotFoundException("Author not found with the particular author code: "+authorCode+". Try again with the valid code");
+        }
+        return optionalAuthor.get();
+    }
 
 }
