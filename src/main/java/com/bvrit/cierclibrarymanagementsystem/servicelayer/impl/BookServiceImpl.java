@@ -3,6 +3,8 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.BookCodeGenerator;
@@ -12,7 +14,11 @@ import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +59,13 @@ public class BookServiceImpl implements BookService {
 
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }
+    @Transactional
+    public String updateBooksStatus(List<String>bookCodeList, BookStatus bookStatus){
+        for(String bookCode:bookCodeList){
+            bookRepository.updateBookStatusByBookCode(bookStatus, bookCode);
+        }
+        return "Books status changed successfully";
+    }
     public BookResponse getBookByBookCode(String bookCode) throws BookNotFoundException {
         Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
         if(!optionalBook.isPresent()){
@@ -63,7 +76,7 @@ public class BookServiceImpl implements BookService {
         return bookResponse;
     }
     public List<BookResponse> getBookListByBookName(String bookName){
-        List<Book>bookList=bookRepository.findByName(bookName);
+        List<Book>bookList=bookRepository.findBookByName(bookName);
         List<BookResponse>bookResponseList=new ArrayList<>();
         for(Book book: bookList){
             BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
@@ -72,11 +85,30 @@ public class BookServiceImpl implements BookService {
         return bookResponseList;
     }
 
+    public List<BookResponse> getBookListByGenre(Genre genre){
+        List<Book>bookList=bookRepository.findBookListByGenre(genre);
+        return bookListToBookResponseList(bookList);
+    }
+    public List<BookResponse> getBookListByBookStatus(BookStatus bookStatus){
+        List<Book>bookList=bookRepository.findBookListByBookStatus(bookStatus);
+        return bookListToBookResponseList(bookList);
+    }
+
+    //below methods for internal purpose....not to call through API
     public Book findBookByBookCode(String bookCode)throws Exception{
         Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
         if(!optionalBook.isPresent()){
             throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
         }
         return optionalBook.get();
+    }
+
+    private List<BookResponse> bookListToBookResponseList(List<Book>bookList){
+        List<BookResponse>bookResponseList=new ArrayList<>();
+        for(Book book: bookList){
+            BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
+            bookResponseList.add(bookResponse);
+        }
+        return bookResponseList;
     }
 }

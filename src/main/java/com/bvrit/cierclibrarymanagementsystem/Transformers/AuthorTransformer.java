@@ -4,8 +4,10 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.AuthorResponse;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
 
+import java.io.IOException;
+
 public class AuthorTransformer {
-    public static Author authorRequestToAuthor(AuthorRequest authorRequest){
+    public static Author authorRequestToAuthor(AuthorRequest authorRequest) throws IOException {
         return Author.builder()
                 .name(authorRequest.getName())
                 .age(authorRequest.getAge())

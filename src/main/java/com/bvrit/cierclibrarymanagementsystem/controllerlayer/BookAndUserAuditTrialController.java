@@ -1,5 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
+import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookAndUserAuditTrialService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.BookAndUserAuditTrialServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class BookAndUserAuditTrialController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+
     @GetMapping("/calculate-fine-amount")
     public ResponseEntity calculateFineAmount(@RequestParam String userCode, @RequestParam String bookCode){
         try {
@@ -37,4 +39,13 @@ public class BookAndUserAuditTrialController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/get-active-book-borrowers-list")
+    public ResponseEntity getActiveBookBorrowersList(){
+        return new ResponseEntity(bookAndUserAuditTrialService.getActiveBookBorrowersList(), HttpStatus.OK);
+    }
+    @GetMapping("/get-user-book-issue-return-record-list")
+    public ResponseEntity getUserBookIssueReturnRecordListByStatus(BookAndUserAuditStatus bookAndUserAuditStatus){
+        return new ResponseEntity(bookAndUserAuditTrialService.getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatus), HttpStatus.OK);
+    }
+
 }

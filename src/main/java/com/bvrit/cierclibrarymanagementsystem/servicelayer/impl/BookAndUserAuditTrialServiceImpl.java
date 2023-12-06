@@ -1,5 +1,9 @@
 package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
+import com.bvrit.cierclibrarymanagementsystem.Transformers.BookAndUserAuditTrialTransformer;
+import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
+import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookAndUserAuditTrialResponse;
+import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
@@ -17,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -57,7 +63,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         if(card.getStatus().equals(CardStatus.NEW))card.setStatus(CardStatus.ACTIVE);
 
         book.setCard(card);
-        book.setBookStatus(BookStatus.NOT_AVAILABLE);
+        book.setBookStatus(BookStatus.IN_CIRCULATION);
 
         //saving the child instead of saving both the parents to avoid duplicates
          bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
@@ -116,5 +122,24 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         cardRepository.save(card);
 
         return fineAmount;
+    }
+    public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(BookAndUserAuditStatus bookAndUserAuditStatus){
+        List<BookAndUserAuditTrial>bookAndUserAuditTrialList=bookAndUserAuditTrialRepository.findByStatus(bookAndUserAuditStatus);
+        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=new ArrayList<>();
+        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
+            BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse= BookAndUserAuditTrialTransformer.bookAndUserAuditTrialTransformerToBookAndUserAuditTrialTransformerResponse(bookAndUserAuditTrial);
+            bookAndUserAuditTrialResponseList.add(bookAndUserAuditTrialResponse);
+        }
+        return bookAndUserAuditTrialResponseList;
+    }
+    public List<UserResponse> getActiveBookBorrowersList(){
+        List<BookAndUserAuditTrial>bookAndUserAuditTriaList=bookAndUserAuditTrialRepository.findByStatus(BookAndUserAuditStatus.ISSUED);
+        List<UserResponse>userResponseList=new ArrayList<>();
+        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTriaList){
+            User user=bookAndUserAuditTrial.getCard().getUser();
+            UserResponse userResponse= UserTransformer.userToUserResponse(user);
+            userResponseList.add(userResponse);
+        }
+        return userResponseList;
     }
 }

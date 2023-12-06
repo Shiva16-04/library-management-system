@@ -13,4 +13,5 @@ public class AuthorResponse {
     int age;
     double rating;
     String email;
+
 }

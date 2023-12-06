@@ -17,4 +17,5 @@ public class BookResponse {
     double rating;
     Genre genre;
     String authorName;
+
 }
