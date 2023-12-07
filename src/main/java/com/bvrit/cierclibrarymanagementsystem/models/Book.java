@@ -48,6 +48,4 @@ public class Book {
     @ManyToOne
     Card card;
 
-    @OneToMany
-    List<BookAndUserAuditTrial> bookAndUserAuditTrialList;
 }

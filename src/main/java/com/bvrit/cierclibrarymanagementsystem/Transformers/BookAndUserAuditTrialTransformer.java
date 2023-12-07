@@ -20,8 +20,8 @@ public class BookAndUserAuditTrialTransformer {
                 .returnedOn(bookAndUserAuditTrial.getReturnedOn())
                 .lastModifiedOn(bookAndUserAuditTrial.getLastModifiedOn())
                 .status(bookAndUserAuditTrial.getStatus())
-                .cardCode(bookAndUserAuditTrial.getCard().getCardCode())
-                .bookCode(bookAndUserAuditTrial.getBook().getBookCode())
+                .cardCode(bookAndUserAuditTrial.getCardCode())
+                .bookCode(bookAndUserAuditTrial.getBookCode())
                 .build();
     }
 }

@@ -3,6 +3,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.BookAndUserAuditTrialTransformer;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookAndUserAuditTrialResponse;
+import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
@@ -16,19 +17,15 @@ import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTrialRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookAndUserAuditTrialService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.senderEmail;
 
@@ -42,6 +39,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     private BookService bookService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private CardService cardService;
     @Autowired
     private EmailGenerator emailGenerator;
     @Autowired
@@ -67,16 +66,10 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         BookAndUserAuditTrial bookAndUserAuditTrial=BookAndUserAuditTrialTransformer.bookAndUserAuditTrialCreation(book.getReadTime());
 
-        //setting the attribute
-        bookAndUserAuditTrial.setStatus(BookAndUserAuditStatus.ISSUED);
-
         //setting the foreign keys
-        bookAndUserAuditTrial.setBook(book);
-        bookAndUserAuditTrial.setCard(card);
+        bookAndUserAuditTrial.setBookCode(book.getBookCode());
+        bookAndUserAuditTrial.setCardCode(card.getCardCode());
 
-        //bidirectionally mapping
-        book.getBookAndUserAuditTrialList().add(bookAndUserAuditTrial);
-        card.getBookAndUserAuditTrialList().add(bookAndUserAuditTrial);
 
         //setting the foreign keys for book and user and bidirectionally mapping them
         card.getBookList().add(book);
@@ -99,7 +92,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
-        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookAndCardAndStatus(book, card, BookAndUserAuditStatus.ISSUED);
+        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
 
         card.setFineAmount(0);
         card.getBookList().remove(book);
@@ -119,6 +112,32 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
     }
+    @Transactional
+    public String sendMailToBookOverdueBorrowers()throws Exception{
+        List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
+        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
+
+        for(BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse: bookAndUserAuditTrialResponseList){
+            String userCode=bookAndUserAuditTrialResponse.getCardCode();
+            String bookCode=bookAndUserAuditTrialResponse.getBookCode();
+
+            BookAndUserAuditStatus bookAndUserAuditStatus=bookAndUserAuditTrialResponse.getStatus();
+            int fineAmount=calculateFineAmount(userCode, bookCode);
+            if(fineAmount>0){
+                UserResponse userResponse=userService.getUserByUserCode(userCode);
+                BookResponse bookResponse=bookService.getBookByBookCode(bookCode);
+
+                bookAndUserAuditTrialRepository.
+                        updateBookAndUserAuditTrialStatusByBookCodeAndCardCodeAndStatus(BookAndUserAuditStatus.PENDING,
+                                bookCode, userCode, bookAndUserAuditStatus);
+                String emailBody=emailGenerator.dueAmountOnBookEmailGenerator(userResponse.getUserName(), bookResponse.getName(), fineAmount);
+                mailConfigurationService.mailSender(senderEmail, userResponse.getEmail(), emailBody, "ReturnDate Crossed Remainder");
+            }
+        }
+        return "mails have been sent successfully";
+    }
     public int calculateFineAmount(String userCode, String bookCode)throws Exception{
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
@@ -133,7 +152,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             throw new UserBookIssueMismatchException("Book "+book.getName()+"("+bookCode+")"+" is not issued to user "+user.getUserName()+"("+bookCode+")");
         }
 
-        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookAndCardAndStatus(book, card, BookAndUserAuditStatus.ISSUED);
+        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
 
         LocalDate returnDate=bookAndUserAuditTrial.getReturnDate();
         LocalDate presentDate=LocalDate.now();
@@ -161,14 +180,15 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         }
         return bookAndUserAuditTrialResponseList;
     }
-    public List<UserResponse> getActiveBookBorrowersList(){
+    public List<UserResponse> getActiveBookBorrowersList()throws Exception{
         List<BookAndUserAuditTrial>bookAndUserAuditTriaList=bookAndUserAuditTrialRepository.findByStatus(BookAndUserAuditStatus.ISSUED);
         List<UserResponse>userResponseList=new ArrayList<>();
         for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTriaList){
-            User user=bookAndUserAuditTrial.getCard().getUser();
+            User user=userService.findUserByUserCode(bookAndUserAuditTrial.getCardCode());
             UserResponse userResponse= UserTransformer.userToUserResponse(user);
             userResponseList.add(userResponse);
         }
         return userResponseList;
     }
+
 }

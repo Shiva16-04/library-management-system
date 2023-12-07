@@ -7,6 +7,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.UserCannotBeRemovedFromDatabaseException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
@@ -20,6 +21,8 @@ import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.senderEmail;
@@ -60,6 +63,22 @@ public class UserServiceImpl implements UserService {
 
         return "User "+savedUser.getUserName()+" has been registered successfully";
     }
+    public String deleteUsersByUserCodeList(List<String> userCodeList)throws Exception{
+        List<String>removedUserCodeList=new ArrayList<>();
+        List<String>notRemovedUserCodeList=new ArrayList<>();
+        for(String userCode: userCodeList){
+            User user=findUserByUserCode(userCode);
+            if(user.getCard().getBookList().size()==0){
+                userRepository.deleteById(user.getId());
+                removedUserCodeList.add(userCode);
+            }else notRemovedUserCodeList.add(userCode);
+        }
+        if(notRemovedUserCodeList.size()==0){
+            return "Users "+removedUserCodeList+" removed from the database successfully";
+        }
+        throw new UserCannotBeRemovedFromDatabaseException("user/users "+notRemovedUserCodeList+" cannot be removed from the database," +
+                "because user/users holds books of ERC Club.\n To remove user, book should be returned that is issued");
+    }
     public String sendEmailValidationCode(UserEmailRequest userEmailRequest)throws Exception{
         String email=userEmailRequest.getEmail();
         String code=emailGenerator.userEmailValidationCodeGenerator();
@@ -75,8 +94,6 @@ public class UserServiceImpl implements UserService {
         mailConfigurationService.mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
         return "Verification code sent successfully to the mail"+email;
     }
-
-
     public UserResponse getUserByUserCode(String userCode) throws UserNotFoundException {
         Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
         if(!optionalUser.isPresent()){
@@ -95,6 +112,7 @@ public class UserServiceImpl implements UserService {
         UserResponse userResponse=UserTransformer.userToUserResponse(user);
         return userResponse;
     }
+
 
     //below methods are used for internal purposes...not for api calling
     private boolean mailValidation(String email, String code)throws Exception{

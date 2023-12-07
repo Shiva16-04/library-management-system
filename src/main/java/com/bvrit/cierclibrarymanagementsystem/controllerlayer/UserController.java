@@ -4,11 +4,12 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -51,7 +52,11 @@ public class UserController {
         }
     }
     @DeleteMapping("/delete-user-by-user-code")
-    public ResponseEntity deleteUserByUserCode(@RequestParam String userCode){
-        return new ResponseEntity("",HttpStatus.OK);
+    public ResponseEntity deleteUsersByUserCodeList(@RequestParam  List<String> userCodeList){
+        try {
+            return new ResponseEntity(userService.deleteUsersByUserCodeList(userCodeList),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 }

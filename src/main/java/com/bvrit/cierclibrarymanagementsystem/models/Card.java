@@ -36,9 +36,6 @@ public class Card {
     @JoinColumn
     User user;
 
-    @OneToMany
-    List<BookAndUserAuditTrial> bookAndUserAuditTrialList;
-
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
     List<Book> bookList;
 }

@@ -38,10 +38,8 @@ public class BookAndUserAuditTrial {
     @Enumerated(value = EnumType.STRING)
     BookAndUserAuditStatus status;
 
-    @ManyToOne
-    Card card;
+    String cardCode;
 
-    @ManyToOne
-    Book book;
+    String bookCode;
 
 }
