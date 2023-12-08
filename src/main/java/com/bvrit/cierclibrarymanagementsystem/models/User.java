@@ -1,8 +1,8 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BloodGroup;
+import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.Constraint;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -25,6 +25,10 @@ public class User {
 
     @Column(nullable = false)
     String userName;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    Role role;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
