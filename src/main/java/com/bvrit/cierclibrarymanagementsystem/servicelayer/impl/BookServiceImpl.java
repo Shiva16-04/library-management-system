@@ -5,6 +5,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
+import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeRemovedFromDatabaseException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
@@ -15,6 +16,7 @@ import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +28,11 @@ import java.util.Optional;
 @Service
 public class BookServiceImpl implements BookService {
     @Autowired
+    private TransactionService transactionService;
+    @Autowired
     private BookRepository bookRepository;
     @Autowired
     private AuthorRepository authorRepository;
-
     @Autowired
     private BookCodeGenerator bookCodeGenerator;
     @Autowired
@@ -57,6 +60,7 @@ public class BookServiceImpl implements BookService {
 
         //saving the author which automatically saves book
         authorRepository.save(author);
+
 
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }

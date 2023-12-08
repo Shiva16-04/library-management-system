@@ -28,7 +28,8 @@ public class EmailGenerator {
     }
     public String dueAmountOnBookEmailGenerator(String name, String bookName, int amount){
 
-        String body= "Hello "+name+" !!!\nWelcome to the English Readers' Club.\nYou have been successfully registered with us.";
+        String body= "Dear "+name+" !!!\nDeadline to return the book "+bookName+" that is issued to is crossed. Fine amount to be paid till date is "+amount+"" +
+                "\n Return the book by tomorrow";
         return body;
     }
 

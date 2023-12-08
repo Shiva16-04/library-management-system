@@ -8,6 +8,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeIssuedException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserBookIssueMismatchException;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
@@ -19,6 +20,7 @@ import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTr
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     private UserService userService;
     @Autowired
     private CardService cardService;
+    @Autowired
+    private TransactionService transactionService;
     @Autowired
     private EmailGenerator emailGenerator;
     @Autowired
@@ -66,6 +70,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         BookAndUserAuditTrial bookAndUserAuditTrial=BookAndUserAuditTrialTransformer.bookAndUserAuditTrialCreation(book.getReadTime());
 
+        card.setNumberOfBooksIssued(card.getNumberOfBooksIssued()+1);
+
         //setting the foreign keys
         bookAndUserAuditTrial.setBookCode(book.getBookCode());
         bookAndUserAuditTrial.setCardCode(card.getCardCode());
@@ -84,6 +90,9 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         //sending book issue confirmation mail to the user
         String emailBody=emailGenerator.bookIssueEmailGenerator(user.getUserName(),book.getName(),bookAndUserAuditTrial.getReturnDate());
         mailConfigurationService.mailSender(senderEmail,user.getEmail(),emailBody, "Book Issue Confirmation");
+
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode);
 
          return "Book "+book.getName()+" is successfully issued to the user "+user.getUserName();
     }
@@ -110,9 +119,13 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         String emailBody=emailGenerator.bookReturnEmailGenerator(user.getUserName(), book.getName(), LocalDate.now());
         mailConfigurationService.mailSender(senderEmail,user.getEmail(),emailBody, "Book Return Confirmation");
 
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode);
+
         return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
     }
     @Transactional
+    @Scheduled()
     public String sendMailToBookOverdueBorrowers()throws Exception{
         List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);

@@ -5,6 +5,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerificationCodeRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserCannotBeRemovedFromDatabaseException;
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService {
         mailValidation(userRequest.getEmail(), codeFromUser);
 
         User user= UserTransformer.userRequestToUser(userRequest);
+        user.setRole(Role.STUDENT);
         Card card= cardService.createCard(user);
 
         //saves both user and card automatically because of cascading function
