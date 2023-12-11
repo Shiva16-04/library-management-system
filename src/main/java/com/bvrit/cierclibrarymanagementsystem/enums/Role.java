@@ -1,8 +1,8 @@
 package com.bvrit.cierclibrarymanagementsystem.enums;
 
 public enum Role {
-    STUDENT("Student"),
-    ADMIN("Admin");
+    STUDENT("ROLE_STUDENT"),
+    ADMIN("ROLE_ADMIN");
     private final String displayName;
 
     Role(String displayName) {

@@ -6,10 +6,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerifica
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.InValidEmailVerificationCodeException;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.UserAlreadyPresentException;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.UserCannotBeRemovedFromDatabaseException;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
+import com.bvrit.cierclibrarymanagementsystem.exceptions.*;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import com.bvrit.cierclibrarymanagementsystem.models.User;
@@ -43,17 +40,21 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserEmailVerificationCodeRepository userEmailVerificationCodeRepository;
 
-    public String addUser(UserRequest userRequest)throws Exception{
+    public String addUser(UserRequest userRequest, Role role)throws Exception{
         Optional<User>optionalUser=userRepository.findUserByEmail(userRequest.getEmail());
         if(optionalUser.isPresent()){
             throw new UserAlreadyPresentException("User already Registered");
+        }
+        //validating the match of password and retype password
+        if(!userRequest.getPassword().equals(userRequest.getReTypePassword())){
+            throw new PasswordReTypePasswordNotMatchException("Password and reType password did not match");
         }
         //validating the email of the user
         String codeFromUser=userRequest.getEmailVerificationCode();
         mailValidation(userRequest.getEmail(), codeFromUser);
 
         User user= UserTransformer.userRequestToUser(userRequest);
-        user.setRole(Role.STUDENT);
+        user.setRole(role);
         Card card= cardService.createCard(user);
 
         //saves both user and card automatically because of cascading function

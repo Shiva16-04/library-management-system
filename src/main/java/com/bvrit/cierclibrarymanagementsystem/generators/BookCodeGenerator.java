@@ -5,10 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 @Component
 public class BookCodeGenerator extends CodeGenerator {
-//    private static final String Prefix=null;
-//    private static final String FORMAT_PATTERN="yyyy";
-//    private static final Long MAX_SEQUENCE_NUMBER=Long.MAX_VALUE;
-
     @Autowired
     private BookRepository bookRepository;
 

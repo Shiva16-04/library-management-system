@@ -17,6 +17,7 @@ import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,8 @@ public class AuthorServiceImpl implements AuthorService {
         authorRepository.deleteById(author.getId());
         return "Author "+author.getName()+" is removed from the database successfully";
     }
+
+
     //searching authors (or) finding authors with author code and author mail id which are unique
     public AuthorResponse findAuthorByAuthorCode(String authorCode) throws AuthorNotFoundException {
         Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
@@ -76,7 +79,6 @@ public class AuthorServiceImpl implements AuthorService {
         AuthorResponse authorResponse=AuthorTransformer.authorToAuthorResponse(author);
         return authorResponse;
     }
-
     public List<BookResponse> getBookListByAuthorCode(String authorCode)  {
         Author author=authorRepository.findAuthorByAuthorCode(authorCode).get();
         List<Book>bookList=author.getBookList();
@@ -88,6 +90,7 @@ public class AuthorServiceImpl implements AuthorService {
         return bookResponseList;
     }
 
+    //below method or function is used for internal purpose
     private Author getAuthorEntityByAuthorCode(String authorCode) throws AuthorNotFoundException {
         Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
         if(!optionalAuthor.isPresent()){

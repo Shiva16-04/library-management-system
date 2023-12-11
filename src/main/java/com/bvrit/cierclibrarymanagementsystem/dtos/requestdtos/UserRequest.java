@@ -13,4 +13,6 @@ public class UserRequest {
     String contactNumber;
     String email;
     String emailVerificationCode;
+    String password;
+    String reTypePassword;
 }

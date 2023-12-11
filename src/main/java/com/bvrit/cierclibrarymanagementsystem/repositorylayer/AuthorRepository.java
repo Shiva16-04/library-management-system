@@ -12,7 +12,6 @@ import java.util.Optional;
 public interface AuthorRepository extends JpaRepository<Author, Integer> {
     Optional<Author> findAuthorByEmail(String email);
     Optional<Author> findAuthorByAuthorCode(String authorCode);
-//    List<Book> findBookListByAuthorCode(String authorCode);
     @Query(value = "SELECT MAX(CAST(SUBSTRING(author_code, 8) AS SIGNED)) FROM author WHERE SUBSTRING(author_code, 1, 4) = :year", nativeQuery = true)
     Long findLatestSequenceNumber(@Param("year") String year);
 }

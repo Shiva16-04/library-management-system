@@ -30,6 +30,10 @@ public class Author {
     @Column(nullable = false)
     double rating;
 
+    @Lob
+    @Column(columnDefinition="MEDIUMBLOB")
+    private byte[] authorImage;
+
     @Column(nullable = false, unique = true)
     @Email(regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$", message = "should be a valid email address")
     //validating email using RFC 5322 standard
