@@ -1,7 +1,5 @@
 package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.AdminService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -12,11 +10,12 @@ import org.springframework.stereotype.Service;
 public class MailConfigurationServiceImpl implements MailConfigurationService {
     @Autowired
     private JavaMailSender mailSender;
-    @Autowired
-    private AdminService adminService;
 
-    public static String senderEmail="applicationtesting1604@gmail.com";
+    public static String SENDER_EMAIL ="applicationtesting1604@gmail.com";
 
+    public void updateSenderEmail(String senderEmail){
+        SENDER_EMAIL=senderEmail;
+    }
     public void mailSender(String senderEmail, String recipientEmail, String body, String subject){
         SimpleMailMessage mailMessage=new SimpleMailMessage();
         mailMessage.setFrom(senderEmail);

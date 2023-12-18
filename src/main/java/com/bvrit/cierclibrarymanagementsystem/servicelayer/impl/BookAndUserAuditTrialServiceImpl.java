@@ -12,10 +12,7 @@ import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeIssuedException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserBookIssueMismatchException;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
-import com.bvrit.cierclibrarymanagementsystem.models.Book;
-import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
-import com.bvrit.cierclibrarymanagementsystem.models.Card;
-import com.bvrit.cierclibrarymanagementsystem.models.User;
+import com.bvrit.cierclibrarymanagementsystem.models.*;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTrialRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
@@ -29,7 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.senderEmail;
+import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.SENDER_EMAIL;
 
 @Service
 public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialService {
@@ -50,11 +47,13 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     @Autowired
     private MailConfigurationService mailConfigurationService;
 
+    private static Integer FINE_PER_DAY =5;
+    private static Integer MAX_BOOKS_ISSUE_PER_USER=1;
 
-    private static final Integer FINE_PER_DAY = 5;
-    private static final Integer MAX_BOOKS_ISSUE_PER_USER=1;
-
-
+    public void updateFinePerDayAndMaxBooksIssuePerUser(int finePerDay, int maxBooksIssuePerUser){
+        FINE_PER_DAY=finePerDay;
+        MAX_BOOKS_ISSUE_PER_USER=maxBooksIssuePerUser;
+    }
 
     public String issueBook(String userCode, String bookCode)throws Exception{
         Book book=bookService.findBookByBookCode(bookCode);
@@ -89,7 +88,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         //sending book issue confirmation mail to the user
         String emailBody=emailGenerator.bookIssueEmailGenerator(user.getUserName(),book.getName(),bookAndUserAuditTrial.getReturnDate());
-        mailConfigurationService.mailSender(senderEmail,user.getEmail(),emailBody, "Book Issue Confirmation");
+        mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Issue Confirmation");
 
         //initiating transaction creation
         transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode);
@@ -117,7 +116,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         //sending book issue confirmation mail to the user
         String emailBody=emailGenerator.bookReturnEmailGenerator(user.getUserName(), book.getName(), LocalDate.now());
-        mailConfigurationService.mailSender(senderEmail,user.getEmail(),emailBody, "Book Return Confirmation");
+        mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Return Confirmation");
 
         //initiating transaction creation
         transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode);
@@ -146,7 +145,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
                         updateBookAndUserAuditTrialStatusByBookCodeAndCardCodeAndStatus(BookAndUserAuditStatus.PENDING,
                                 bookCode, userCode, bookAndUserAuditStatus);
                 String emailBody=emailGenerator.dueAmountOnBookEmailGenerator(userResponse.getUserName(), bookResponse.getName(), fineAmount);
-                mailConfigurationService.mailSender(senderEmail, userResponse.getEmail(), emailBody, "ReturnDate Crossed Remainder");
+                mailConfigurationService.mailSender(SENDER_EMAIL, userResponse.getEmail(), emailBody, "ReturnDate Crossed Remainder");
             }
         }
         return "mails have been sent successfully";

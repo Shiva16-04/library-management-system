@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.senderEmail;
+import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.SENDER_EMAIL;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
         //sending registration confirmation mail to the user
         String emailBody=emailGenerator.userSuccessfulRegistrationMessageEmailGenerator(user.getUserName());
-        mailConfigurationService.mailSender(senderEmail,user.getEmail(), emailBody, "User Registration Confirmation");
+        mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(), emailBody, "User Registration Confirmation");
 
         return "User "+savedUser.getUserName()+" has been registered successfully";
     }

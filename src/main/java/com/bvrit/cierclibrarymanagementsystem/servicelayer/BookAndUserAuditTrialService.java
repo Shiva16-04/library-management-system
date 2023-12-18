@@ -8,6 +8,7 @@ import java.util.List;
 
 
 public interface BookAndUserAuditTrialService {
+    public void updateFinePerDayAndMaxBooksIssuePerUser(int finePerDay, int maxBooksIssuePerUser);
     public String issueBook(String userCode, String bookCode)throws Exception;
     public String returnBook(String userCode, String bookCode)throws Exception;
     public int calculateFineAmount(String userCode, String bookCode)throws Exception;

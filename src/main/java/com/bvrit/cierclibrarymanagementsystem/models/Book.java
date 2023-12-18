@@ -40,7 +40,6 @@ public class Book {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     BookStatus bookStatus;
-
     @ManyToOne
     @JoinColumn
     Author author;

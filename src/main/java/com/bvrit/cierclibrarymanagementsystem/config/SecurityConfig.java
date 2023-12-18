@@ -15,7 +15,8 @@ public class SecurityConfig {
     public SecurityFilterChain getSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/email-authentication-code-to-user-email", "/add-admin-ci-erc-library-management-system", "/user/add-user").permitAll()
+                .requestMatchers("/user/email-authentication-code-to-user-email", "/admin/add-admin-ci-erc-library-management-system", "/user/add-user", "/admin/top-book-list-by-new-york-times").permitAll()
+                .requestMatchers("/admin/add-utility-details", "/admin/get-utility-details-list", "/utility/**").hasAnyRole("ADMIN")
                 .requestMatchers( "/user/find-user-by-user-code/{userCode}", "/user/find-user-by-user-email", "/user/delete-user-by-user-code").hasRole("ADMIN")
                 .requestMatchers("/author/add-author", "/author/delete-author-by-author-code", "/book/add-book", "/book/update-books-status", "/book/delete-book").hasRole("ADMIN")
                 .requestMatchers("/issue-return/**", "/transaction/**").hasRole("ADMIN")
