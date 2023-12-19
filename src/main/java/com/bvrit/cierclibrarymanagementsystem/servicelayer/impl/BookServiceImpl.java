@@ -14,6 +14,7 @@ import com.bvrit.cierclibrarymanagementsystem.models.Author;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthenticationDetailsService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
@@ -37,6 +38,8 @@ public class BookServiceImpl implements BookService {
     private BookCodeGenerator bookCodeGenerator;
     @Autowired
     private MailConfigurationService mailConfigurationService;
+    @Autowired
+    private AuthenticationDetailsService authenticationDetailsService;
 
     public String addBook(BookRequest bookRequest, String authorCode)throws Exception{
 
@@ -61,7 +64,8 @@ public class BookServiceImpl implements BookService {
         //saving the author which automatically saves book
         authorRepository.save(author);
 
-
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.BOOK_ADDED, bookCode, "", authenticationDetailsService.getAuthenticationDetails());
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }
     @Transactional
@@ -106,6 +110,10 @@ public class BookServiceImpl implements BookService {
             Book book = findBookByBookCode(bookCode);
             if(book.getBookStatus() == BookStatus.AVAILABLE) {
                 bookRepository.deleteById(book.getId());
+
+                //initiating transaction creation
+                transactionService.createTransaction(TransactionStatus.BOOK_REMOVED, bookCode, "", authenticationDetailsService.getAuthenticationDetails());
+
                 removedBookNameList.add(book.getName());
             }
             else notRemovedBookNameList.add(book.getName());

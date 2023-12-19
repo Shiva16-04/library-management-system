@@ -4,12 +4,8 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.AuthorResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
-import com.bvrit.cierclibrarymanagementsystem.models.Author;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
 
 public interface AuthorService {

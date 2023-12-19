@@ -3,9 +3,6 @@ package com.bvrit.cierclibrarymanagementsystem.Transformers;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.AuthorResponse;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 public class AuthorTransformer {
     public static Author authorRequestToAuthor(AuthorRequest authorRequest){

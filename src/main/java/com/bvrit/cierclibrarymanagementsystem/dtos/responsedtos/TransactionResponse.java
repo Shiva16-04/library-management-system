@@ -17,5 +17,6 @@ public class TransactionResponse {
     LocalDate creationDate;
     TransactionStatus transactionStatus;
     String transactedOn;
+    String transactedFor;
     String transactedBy;
 }

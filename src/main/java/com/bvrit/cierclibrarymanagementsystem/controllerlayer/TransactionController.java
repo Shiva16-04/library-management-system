@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
-import com.bvrit.cierclibrarymanagementsystem.models.Transaction;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

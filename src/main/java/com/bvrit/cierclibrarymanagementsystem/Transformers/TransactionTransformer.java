@@ -5,10 +5,11 @@ import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.models.Transaction;
 
 public class TransactionTransformer {
-    public static Transaction transactionRequestToTransaction(TransactionStatus transactionStatus, String transactedOn, String transactedBy ){
+    public static Transaction transactionRequestToTransaction(TransactionStatus transactionStatus, String transactedOn, String transactedFor, String transactedBy ){
         return Transaction.builder()
                 .transactionStatus(transactionStatus)
                 .transactedOn(transactedOn)
+                .transactedFor(transactedFor)
                 .transactedBy(transactedBy)
                 .build();
     }
@@ -17,6 +18,7 @@ public class TransactionTransformer {
                 .creationDate(transaction.getCreationDate())
                 .transactionStatus(transaction.getTransactionStatus())
                 .transactedOn(transaction.getTransactedOn())
+                .transactedFor(transaction.getTransactedFor())
                 .transactedBy(transaction.getTransactedBy())
                 .build();
     }

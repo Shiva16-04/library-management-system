@@ -1,17 +1,20 @@
 package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
+
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.AuthenticationDetailsServiceImpl;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UtilityRequest;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UtilityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 @RestController
 @RequestMapping("/utility")
 public class UtilityController {
     @Autowired
     private UtilityService utilityService;
+    @Autowired
+    private AuthenticationDetailsServiceImpl authenticationDetailsService;
     @PostMapping("/add-utility-details")
     public ResponseEntity addUtilityDetails(@RequestBody UtilityRequest utilityRequest){
         try {
@@ -31,6 +34,10 @@ public class UtilityController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+    @GetMapping("/get-authentication-details")
+    public ResponseEntity getAuthenticationDetails(){
+        return new ResponseEntity<>(authenticationDetailsService.getAuthenticationDetails(), HttpStatus.OK);
     }
 
 }

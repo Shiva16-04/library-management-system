@@ -12,7 +12,10 @@ import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeIssuedException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserBookIssueMismatchException;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
-import com.bvrit.cierclibrarymanagementsystem.models.*;
+import com.bvrit.cierclibrarymanagementsystem.models.Book;
+import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
+import com.bvrit.cierclibrarymanagementsystem.models.Card;
+import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookAndUserAuditTrialRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.CardRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
@@ -46,6 +49,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     private EmailGenerator emailGenerator;
     @Autowired
     private MailConfigurationService mailConfigurationService;
+    @Autowired
+    private AuthenticationDetailsService authenticationDetailsService;
 
     private static Integer FINE_PER_DAY =5;
     private static Integer MAX_BOOKS_ISSUE_PER_USER=1;
@@ -91,12 +96,12 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Issue Confirmation");
 
         //initiating transaction creation
-        transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode);
+        transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
 
          return "Book "+book.getName()+" is successfully issued to the user "+user.getUserName();
     }
     public String returnBook(String userCode, String bookCode)throws Exception{
-        int fineAmount=calculateFineAmount(userCode, bookCode);
+        int fineAmount=calculateFineAmount(userCode, bookCode, 0);
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
@@ -119,7 +124,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Return Confirmation");
 
         //initiating transaction creation
-        transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode);
+        transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
 
         return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
     }
@@ -129,6 +134,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
+
+        //calling the other method to get the list based on the status
         List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
 
         for(BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse: bookAndUserAuditTrialResponseList){
@@ -136,7 +143,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             String bookCode=bookAndUserAuditTrialResponse.getBookCode();
 
             BookAndUserAuditStatus bookAndUserAuditStatus=bookAndUserAuditTrialResponse.getStatus();
-            int fineAmount=calculateFineAmount(userCode, bookCode);
+            int fineAmount=calculateFineAmount(userCode, bookCode, 0);
             if(fineAmount>0){
                 UserResponse userResponse=userService.getUserByUserCode(userCode);
                 BookResponse bookResponse=bookService.getBookByBookCode(bookCode);
@@ -150,7 +157,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         }
         return "mails have been sent successfully";
     }
-    public int calculateFineAmount(String userCode, String bookCode)throws Exception{
+    public int calculateFineAmount(String userCode, String bookCode, int additionalAmount)throws Exception{
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
@@ -176,6 +183,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         if(daysDifference>maxLimitDays){
             fineAmount = Math.toIntExact(daysDifference  * FINE_PER_DAY);
         }
+        fineAmount+=additionalAmount;
         card.setFineAmount(fineAmount);
 
         //saving the card
@@ -193,10 +201,16 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         return bookAndUserAuditTrialResponseList;
     }
     public List<UserResponse> getActiveBookBorrowersList()throws Exception{
-        List<BookAndUserAuditTrial>bookAndUserAuditTriaList=bookAndUserAuditTrialRepository.findByStatus(BookAndUserAuditStatus.ISSUED);
+
+        List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
+
+        //calling the other method to get the list based on the status
+        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
         List<UserResponse>userResponseList=new ArrayList<>();
-        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTriaList){
-            User user=userService.findUserByUserCode(bookAndUserAuditTrial.getCardCode());
+        for(BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse: bookAndUserAuditTrialResponseList){
+            User user=userService.findUserByUserCode(bookAndUserAuditTrialResponse.getCardCode());
             UserResponse userResponse= UserTransformer.userToUserResponse(user);
             userResponseList.add(userResponse);
         }

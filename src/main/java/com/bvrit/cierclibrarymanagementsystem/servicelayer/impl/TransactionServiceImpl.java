@@ -18,8 +18,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public void createTransaction(TransactionStatus transactionStatus, String transactedOn, String transactedBy) {
-        Transaction transaction= TransactionTransformer.transactionRequestToTransaction(transactionStatus, transactedOn, transactedBy);
+    public void  createTransaction(TransactionStatus transactionStatus, String transactedOn, String transactedFor, String transactedBy) {
+        Transaction transaction= TransactionTransformer.transactionRequestToTransaction(transactionStatus, transactedOn, transactedFor, transactedBy);
         transactionRepository.save(transaction);
     }
     public List<TransactionResponse> getTransactionListByTransactionStatusListAndDate(List<TransactionStatus>transactionStatusList, LocalDate targetDate){

@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.models;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -10,7 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table

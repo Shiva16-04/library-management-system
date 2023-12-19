@@ -5,9 +5,6 @@ import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.GenericGenerator;
-
-import java.util.List;
 
 @Entity
 @Table

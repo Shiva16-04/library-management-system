@@ -37,9 +37,9 @@ public class BookAndUserAuditTrialController {
     }
 
     @GetMapping("/calculate-fine-amount")
-    public ResponseEntity calculateFineAmount(@RequestParam String userCode, @RequestParam String bookCode){
+    public ResponseEntity calculateFineAmount(@RequestParam String userCode, @RequestParam String bookCode, @RequestParam int additionalAmount){
         try {
-            return new ResponseEntity(bookAndUserAuditTrialService.calculateFineAmount(userCode, bookCode), HttpStatus.ACCEPTED);
+            return new ResponseEntity(bookAndUserAuditTrialService.calculateFineAmount(userCode, bookCode, additionalAmount), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

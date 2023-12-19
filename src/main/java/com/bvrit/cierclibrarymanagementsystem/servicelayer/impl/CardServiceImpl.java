@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 
 import com.bvrit.cierclibrarymanagementsystem.Transformers.CardTransformer;
-import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import com.bvrit.cierclibrarymanagementsystem.models.User;

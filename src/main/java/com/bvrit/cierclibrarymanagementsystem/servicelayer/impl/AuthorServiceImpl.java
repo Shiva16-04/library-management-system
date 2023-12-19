@@ -6,6 +6,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.AuthorResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorAlreadyPresentException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorCannotBeRemovedFromDatabaseException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
@@ -13,11 +14,11 @@ import com.bvrit.cierclibrarymanagementsystem.generators.AuthorCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthenticationDetailsService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,10 @@ public class AuthorServiceImpl implements AuthorService {
     private AuthorRepository authorRepository;
     @Autowired
     private AuthorCodeGenerator authorCodeGenerator;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private AuthenticationDetailsService authenticationDetailsService;
 
     public String addAuthor(AuthorRequest authorRequest)throws Exception{
         Optional<Author>optionalAuthor=authorRepository.findAuthorByEmail(authorRequest.getEmail());
@@ -42,7 +47,10 @@ public class AuthorServiceImpl implements AuthorService {
         author.setAuthorCode(authorCode);
 
         //saving the author to the database
-        authorRepository.save(author);
+        Author savedAuthor=authorRepository.save(author);
+
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.AUTHOR_ADDED, savedAuthor.getAuthorCode(), "", authenticationDetailsService.getAuthenticationDetails());
         return "Author "+authorRequest.getName()+" is successfully added to the database";
     }
     public String deleteAuthorByAuthorCode(String authorCode) throws Exception{
@@ -56,6 +64,9 @@ public class AuthorServiceImpl implements AuthorService {
             }
         }
         authorRepository.deleteById(author.getId());
+
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.AUTHOR_REMOVED, authorCode, "", authenticationDetailsService.getAuthenticationDetails());
         return "Author "+author.getName()+" is removed from the database successfully";
     }
 

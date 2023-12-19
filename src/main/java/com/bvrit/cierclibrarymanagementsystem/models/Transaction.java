@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDate;
 @Entity
 @Table
@@ -25,6 +26,9 @@ public class Transaction {
 
     @Column(nullable = false)
     String transactedOn;
+
+    @Column(nullable = false)
+    String transactedFor;
 
     @Column(nullable = false)
     String transactedBy;

@@ -6,6 +6,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerifica
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
+import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.*;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Card;
@@ -13,9 +14,7 @@ import com.bvrit.cierclibrarymanagementsystem.models.User;
 import com.bvrit.cierclibrarymanagementsystem.models.UserEmailVerificationCode;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserEmailVerificationCodeRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserRepository;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +38,10 @@ public class UserServiceImpl implements UserService {
     private UserEmailVerificationCodeServiceImpl userEmailVerificationCodeService;
     @Autowired
     private UserEmailVerificationCodeRepository userEmailVerificationCodeRepository;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private AuthenticationDetailsService authenticationDetailsService;
 
     public String addUser(UserRequest userRequest, Role role)throws Exception{
         Optional<User>optionalUser=userRepository.findUserByEmail(userRequest.getEmail());
@@ -60,6 +63,9 @@ public class UserServiceImpl implements UserService {
         //saves both user and card automatically because of cascading function
         User savedUser=userRepository.save(user);
 
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.USER_ADDED, savedUser.getUserCode(), "", "");
+
         //sending registration confirmation mail to the user
         String emailBody=emailGenerator.userSuccessfulRegistrationMessageEmailGenerator(user.getUserName());
         mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(), emailBody, "User Registration Confirmation");
@@ -72,7 +78,12 @@ public class UserServiceImpl implements UserService {
         for(String userCode: userCodeList){
             User user=findUserByUserCode(userCode);
             if(user.getCard().getBookList().size()==0){
+
                 userRepository.deleteById(user.getId());
+
+                //initiating transaction creation
+                transactionService.createTransaction(TransactionStatus.USER_REMOVED, userCode, "", authenticationDetailsService.getAuthenticationDetails());
+
                 removedUserCodeList.add(userCode);
             }else notRemovedUserCodeList.add(userCode);
         }

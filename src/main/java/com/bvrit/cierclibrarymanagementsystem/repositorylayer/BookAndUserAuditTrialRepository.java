@@ -1,10 +1,7 @@
 package com.bvrit.cierclibrarymanagementsystem.repositorylayer;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
-import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
-import com.bvrit.cierclibrarymanagementsystem.models.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
