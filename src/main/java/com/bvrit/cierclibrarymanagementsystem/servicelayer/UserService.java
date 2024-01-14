@@ -3,6 +3,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.models.User;

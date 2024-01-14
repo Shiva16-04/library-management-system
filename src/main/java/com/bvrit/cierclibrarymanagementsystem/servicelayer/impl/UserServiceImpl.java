@@ -5,6 +5,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerificationCodeRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.*;
@@ -17,6 +18,7 @@ import com.bvrit.cierclibrarymanagementsystem.repositorylayer.UserRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;

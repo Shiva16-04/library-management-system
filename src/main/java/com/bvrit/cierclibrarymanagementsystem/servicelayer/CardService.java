@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface CardService {
     public Card createCard(User user);
-    public String updateUserCardStatus(List<String> userCodeList, CardStatus cardStatus);
+    public String updateUserCardStatus(List<String> userCodeList, CardStatus cardStatus)throws Exception;
 }

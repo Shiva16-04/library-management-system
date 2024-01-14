@@ -31,6 +31,8 @@ public class Card {
     @Column(nullable = false)
     Integer numberOfBooksIssued;
 
+    String comment;
+
     @OneToOne
     @JoinColumn
     User user;

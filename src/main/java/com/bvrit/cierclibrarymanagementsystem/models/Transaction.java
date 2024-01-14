@@ -33,4 +33,5 @@ public class Transaction {
     @Column(nullable = false)
     String transactedBy;
 
+    String Comment;
 }

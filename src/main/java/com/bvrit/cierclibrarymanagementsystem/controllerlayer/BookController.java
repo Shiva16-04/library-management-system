@@ -2,9 +2,12 @@ package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,10 @@ public class BookController {
     @Autowired
     private BookService bookService;
     @Autowired
+    private UserService userService;
+    @Autowired
     private BookRepository bookRepository;
+
 
 
     @PostMapping("/add-book")
@@ -69,5 +75,6 @@ public class BookController {
         }
 
     }
+
 
 }

@@ -37,6 +37,7 @@ public class Book {
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     BookStatus bookStatus;
+    String Comment;
     @ManyToOne
     @JoinColumn
     Author author;

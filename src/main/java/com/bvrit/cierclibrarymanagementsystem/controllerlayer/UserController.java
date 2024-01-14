@@ -2,8 +2,10 @@ package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
+import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserNotFoundException;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private CardService cardService;
 
     @PostMapping("/email-authentication-code-to-user-email")
     public ResponseEntity sendEmailValidationCode(@RequestBody UserEmailRequest userEmailRequest){
@@ -58,6 +62,14 @@ public class UserController {
     public ResponseEntity deleteUsersByUserCodeList(@RequestParam  List<String> userCodeList){
         try {
             return new ResponseEntity(userService.deleteUsersByUserCodeList(userCodeList),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PatchMapping("/update-card-status")
+    public ResponseEntity updateCardStatus(@RequestParam List<String> userCodeList, @RequestParam CardStatus cardStatus){
+        try {
+            return new ResponseEntity<>(cardService.updateUserCardStatus(userCodeList, cardStatus), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

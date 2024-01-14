@@ -17,6 +17,7 @@ public class CardServiceImpl implements CardService {
     @Autowired
     private CardRepository cardRepository;
 
+
     public Card createCard(User user){
         Card card= CardTransformer.cardRequestToCard();
 
@@ -32,10 +33,11 @@ public class CardServiceImpl implements CardService {
         return card;
     }
     @Transactional
-    public String updateUserCardStatus(List<String> userCodeList, CardStatus cardStatus){
+    public String updateUserCardStatus(List<String> userCodeList, CardStatus cardStatus)throws Exception{
         for(String userCode:userCodeList){
-            cardRepository.updateCardStatusByUserCode(cardStatus, userCode);
+            cardRepository.updateCardStatusByCardCode(cardStatus.toString(), userCode);
         }
         return "Card status changed successfully";
     }
+
 }

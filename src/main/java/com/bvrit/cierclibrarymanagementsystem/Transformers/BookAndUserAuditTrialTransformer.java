@@ -13,11 +13,13 @@ public class BookAndUserAuditTrialTransformer {
                 .status(BookAndUserAuditStatus.ISSUED)
                 .build();
     }
-    public static BookAndUserAuditTrialResponse bookAndUserAuditTrialTransformerToBookAndUserAuditTrialTransformerResponse(BookAndUserAuditTrial bookAndUserAuditTrial){
+    public static BookAndUserAuditTrialResponse bookAndUserAuditTrialToBookAndUserAuditTrialResponse(BookAndUserAuditTrial bookAndUserAuditTrial){
         return BookAndUserAuditTrialResponse.builder()
+                .issueReturnCode(bookAndUserAuditTrial.getIssueReturnCode())
                 .issueDate(bookAndUserAuditTrial.getIssueDate())
                 .returnDate(bookAndUserAuditTrial.getReturnDate())
                 .returnedOn(bookAndUserAuditTrial.getReturnedOn())
+                .returnItem(bookAndUserAuditTrial.getReturnItem())
                 .lastModifiedOn(bookAndUserAuditTrial.getLastModifiedOn())
                 .status(bookAndUserAuditTrial.getStatus())
                 .cardCode(bookAndUserAuditTrial.getCardCode())

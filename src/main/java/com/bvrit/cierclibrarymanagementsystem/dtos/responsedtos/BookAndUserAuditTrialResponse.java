@@ -1,6 +1,7 @@
 package com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.ReturnItem;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AccessLevel;
@@ -15,9 +16,11 @@ import java.util.Date;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookAndUserAuditTrialResponse {
+    String issueReturnCode;
     LocalDate issueDate;
     LocalDate returnDate;
     LocalDate returnedOn;
+    ReturnItem returnItem;
     LocalDateTime lastModifiedOn;
     @Enumerated(value = EnumType.STRING)
     BookAndUserAuditStatus status;

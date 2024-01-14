@@ -5,12 +5,10 @@ import com.bvrit.cierclibrarymanagementsystem.Transformers.UserTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookAndUserAuditTrialResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
-import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
+import com.bvrit.cierclibrarymanagementsystem.enums.*;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeIssuedException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.UserBookIssueMismatchException;
+import com.bvrit.cierclibrarymanagementsystem.generators.BookAndUserAuditTrialCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.generators.EmailGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.models.BookAndUserAuditTrial;
@@ -28,6 +26,8 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.bvrit.cierclibrarymanagementsystem.servicelayer.impl.MailConfigurationServiceImpl.SENDER_EMAIL;
 
@@ -48,6 +48,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     @Autowired
     private EmailGenerator emailGenerator;
     @Autowired
+    private BookAndUserAuditTrialCodeGenerator bookAndUserAuditTrialCodeGenerator;
+    @Autowired
     private MailConfigurationService mailConfigurationService;
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
@@ -58,6 +60,53 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     public void updateFinePerDayAndMaxBooksIssuePerUser(int finePerDay, int maxBooksIssuePerUser){
         FINE_PER_DAY=finePerDay;
         MAX_BOOKS_ISSUE_PER_USER=maxBooksIssuePerUser;
+    }
+
+    public List<BookAndUserAuditTrialResponse> getAuditTrialFilteredList(String issueReturnCode, String userCode, String bookCode,
+                                                                         List<BookAndUserAuditStatus> statuses,
+                                                                         List<ReturnItem> returnItems,
+                                                                         LocalDate issueDateStart, LocalDate issueDateEnd,
+                                                                         LocalDate returnDateStart, LocalDate returnDateEnd,
+                                                                         LocalDate returnedOnStart, LocalDate returnedOnEnd,
+                                                                         Boolean returnedOnIsNull){
+
+
+
+        List<String>statusList=new ArrayList<>();
+        if(!statuses.isEmpty()){
+            for(BookAndUserAuditStatus bookAndUserAuditStatus: statuses){
+                statusList.add(bookAndUserAuditStatus.toString());
+            }
+        }else {
+            System.out.println("It's empty1");
+            for(BookAndUserAuditStatus bookAndUserAuditStatus: BookAndUserAuditStatus.values()){
+                statusList.add(bookAndUserAuditStatus.toString());
+            }
+        }
+
+        List<String>returnItemList=new ArrayList<>();
+        if(!returnItems.isEmpty()){
+            for(ReturnItem returnItem: returnItems){
+                returnItemList.add(returnItem.toString());
+            }
+        }else{
+            System.out.println("It's empty2");
+            for(ReturnItem returnItem: ReturnItem.values()){
+                returnItemList.add(returnItem.toString());
+            }
+        }
+
+        List<BookAndUserAuditTrial>bookAndUserAuditTrialList=
+                bookAndUserAuditTrialRepository.customQuery(issueReturnCode, userCode, bookCode, statusList, returnItemList,
+                        issueDateStart, issueDateEnd, returnDateStart, returnDateEnd,
+                        returnedOnStart, returnedOnEnd, returnedOnIsNull);
+
+        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=new ArrayList<>();
+        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
+            bookAndUserAuditTrialResponseList.add(BookAndUserAuditTrialTransformer
+                    .bookAndUserAuditTrialToBookAndUserAuditTrialResponse(bookAndUserAuditTrial));
+        }
+        return bookAndUserAuditTrialResponseList;
     }
 
     public String issueBook(String userCode, String bookCode)throws Exception{
@@ -71,9 +120,17 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
                     "\nReturn the previous book "+card.getBookList().get(0).getName()+" to get the new book issued");
         }
 
+        //handled a case with exception when card status is frozen, blocked or expired
+        if(card.getStatus()==CardStatus.FREEZE || card.getStatus()==CardStatus.BLOCKED || card.getStatus()==CardStatus.EXPIRED){
+            throw new BookCannotBeIssuedException("Cannot issue the book to the user "+user.getUserName()+" because user card status is "+card.getStatus()+" with comment "+card.getComment());
+        }
 
         BookAndUserAuditTrial bookAndUserAuditTrial=BookAndUserAuditTrialTransformer.bookAndUserAuditTrialCreation(book.getReadTime());
 
+        //generating the unique codes and setting the attributes
+        String code=bookAndUserAuditTrialCodeGenerator.generate("IR");
+        bookAndUserAuditTrial.setIssueReturnCode(code);
+        bookAndUserAuditTrial.setReturnItem(ReturnItem.NULL);
         card.setNumberOfBooksIssued(card.getNumberOfBooksIssued()+1);
 
         //setting the foreign keys
@@ -100,33 +157,52 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
          return "Book "+book.getName()+" is successfully issued to the user "+user.getUserName();
     }
-    public String returnBook(String userCode, String bookCode)throws Exception{
-        int fineAmount=calculateFineAmount(userCode, bookCode, 0);
+    public String returnBook(String userCode, String bookCode, ReturnItem returnItem, GeneralComments comment)throws Exception{
+        //generally calculating the final fine amount
+        calculateFineAmount(userCode, bookCode, 0);
+
         Book book=bookService.findBookByBookCode(bookCode);
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
-        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
 
+        Optional<BookAndUserAuditTrial>optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
+        if(!optionalBookAndUserAuditTrial.isPresent()){
+            optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.FREEZE);
+        }
+        BookAndUserAuditTrial bookAndUserAuditTrial=optionalBookAndUserAuditTrial.get();
+
+        //handling user card
+        if(card.getStatus()==CardStatus.FREEZE)card.setStatus(CardStatus.ACTIVE);
+        if(card.getComment()!=null)card.setComment("");
         card.setFineAmount(0);
         card.getBookList().remove(book);
 
-        book.setBookStatus(BookStatus.AVAILABLE);
+        //handling book
+        switch(returnItem){
+            case ORIGINAL_BOOK -> book.setBookStatus(BookStatus.AVAILABLE);
+            case NEW_BOOK, DAMAGED_BOOK_AND_MONEY, MONEY -> {
+                book.setBookStatus(BookStatus.NOT_AVAILABLE);
+                book.setComment(comment.getDisplayName());
+            }
+        }
         book.setCard(null);
 
+        //handling issue-return transaction
         bookAndUserAuditTrial.setReturnedOn(LocalDate.now());
         bookAndUserAuditTrial.setStatus(BookAndUserAuditStatus.RETURNED);
+        bookAndUserAuditTrial.setReturnItem(returnItem);
 
         // saving the child of both the parents....cascading effect
         bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
 
-        //sending book issue confirmation mail to the user
-        String emailBody=emailGenerator.bookReturnEmailGenerator(user.getUserName(), book.getName(), LocalDate.now());
-        mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Return Confirmation");
+        //sending book return confirmation mail to the user
+        String emailBody = emailGenerator.bookReturnEmailGenerator(user.getUserName(), book.getName(), LocalDate.now());
+        mailConfigurationService.mailSender(SENDER_EMAIL, user.getEmail(), emailBody, "Book Return Confirmation");
 
         //initiating transaction creation
         transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
 
-        return "Book"+book.getName()+" has been successfully returned to the English Reader's Club by "+user.getUserName();
+        return "Book" + book.getName() + " has been successfully returned to the English Reader's Club by " + user.getUserName();
     }
     @Transactional
     @Scheduled()
@@ -134,13 +210,16 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.FREEZE);
 
-        //calling the other method to get the list based on the status
+        //calling the other method to get the list based on multiple status (issue and pending)
         List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
 
         for(BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse: bookAndUserAuditTrialResponseList){
             String userCode=bookAndUserAuditTrialResponse.getCardCode();
             String bookCode=bookAndUserAuditTrialResponse.getBookCode();
+            String issueReturnCode=bookAndUserAuditTrialResponse.getIssueReturnCode();
+            BookAndUserAuditStatus newStatus=BookAndUserAuditStatus.PENDING;
 
             BookAndUserAuditStatus bookAndUserAuditStatus=bookAndUserAuditTrialResponse.getStatus();
             int fineAmount=calculateFineAmount(userCode, bookCode, 0);
@@ -148,9 +227,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
                 UserResponse userResponse=userService.getUserByUserCode(userCode);
                 BookResponse bookResponse=bookService.getBookByBookCode(bookCode);
 
-                bookAndUserAuditTrialRepository.
-                        updateBookAndUserAuditTrialStatusByBookCodeAndCardCodeAndStatus(BookAndUserAuditStatus.PENDING,
-                                bookCode, userCode, bookAndUserAuditStatus);
+                bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(issueReturnCode, newStatus.toString());
+
                 String emailBody=emailGenerator.dueAmountOnBookEmailGenerator(userResponse.getUserName(), bookResponse.getName(), fineAmount);
                 mailConfigurationService.mailSender(SENDER_EMAIL, userResponse.getEmail(), emailBody, "ReturnDate Crossed Remainder");
             }
@@ -162,6 +240,9 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
 
+        if(card.getStatus()==CardStatus.FREEZE || card.getStatus()==CardStatus.BLOCKED || card.getStatus()==CardStatus.EXPIRED){
+            return card.getFineAmount();
+        }
 
         String receivedCardCode=card.getCardCode();
         String actualCardCode=book.getCard().getCardCode();
@@ -171,8 +252,11 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             throw new UserBookIssueMismatchException("Book "+book.getName()+"("+bookCode+")"+" is not issued to user "+user.getUserName()+"("+bookCode+")");
         }
 
-        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
+        Optional<BookAndUserAuditTrial> optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(book.getBookCode(), card.getCardCode(), BookAndUserAuditStatus.ISSUED);
+        if(!optionalBookAndUserAuditTrial.isPresent()){
 
+        }
+        BookAndUserAuditTrial bookAndUserAuditTrial=optionalBookAndUserAuditTrial.get();
         LocalDate returnDate=bookAndUserAuditTrial.getReturnDate();
         LocalDate presentDate=LocalDate.now();
 
@@ -191,11 +275,21 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         return fineAmount;
     }
+
+    public String updateStatusByBookAndUserCodeAndStatus(String bookCode, String userCode, BookAndUserAuditStatus oldStatus, BookAndUserAuditStatus newStatus){
+        Optional<BookAndUserAuditTrial> optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(bookCode, userCode, oldStatus);
+        if(optionalBookAndUserAuditTrial.isEmpty()){
+
+        }
+        BookAndUserAuditTrial bookAndUserAuditTrial=optionalBookAndUserAuditTrial.get();
+        bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(bookAndUserAuditTrial.getIssueReturnCode(), newStatus.toString());
+        return "updated Successfully";
+    }
     public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList){
         List<BookAndUserAuditTrial>bookAndUserAuditTrialList=bookAndUserAuditTrialRepository.findByStatusIn(bookAndUserAuditStatusList);
         List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=new ArrayList<>();
         for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
-            BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse= BookAndUserAuditTrialTransformer.bookAndUserAuditTrialTransformerToBookAndUserAuditTrialTransformerResponse(bookAndUserAuditTrial);
+            BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse= BookAndUserAuditTrialTransformer.bookAndUserAuditTrialToBookAndUserAuditTrialResponse(bookAndUserAuditTrial);
             bookAndUserAuditTrialResponseList.add(bookAndUserAuditTrialResponse);
         }
         return bookAndUserAuditTrialResponseList;
@@ -205,6 +299,8 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
         bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
+        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.FREEZE);
+
 
         //calling the other method to get the list based on the status
         List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
@@ -216,5 +312,31 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         }
         return userResponseList;
     }
+    @Transactional
+    public String freezeOrUnFreeze(String userCode, String bookCode, GeneralComments comment, CardStatus cardStatus, BookAndUserAuditStatus presentStatus, BookAndUserAuditStatus newStatus)throws Exception{
+        Optional<BookAndUserAuditTrial> optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(bookCode, userCode, presentStatus);
+        if(optionalBookAndUserAuditTrial.isEmpty()){
+
+        }
+        BookAndUserAuditTrial bookAndUserAuditTrial=optionalBookAndUserAuditTrial.get();
+        String issueReturnCode=bookAndUserAuditTrial.getIssueReturnCode();
+
+        User user=userService.findUserByUserCode(userCode);
+        Card card=user.getCard();
+
+        if(cardStatus==CardStatus.FREEZE)calculateFineAmount(userCode, bookCode, 0);
+
+        //freezing the card and mentioning the reason in the comment section of card
+        // cardRepository.updateCardStatusByCardCode(CardStatus.FREEZE.toString(), userCode);
+        card.setStatus(cardStatus);
+        card.setComment(comment.getDisplayName());
+
+
+        //freezing the transaction to eliminate the automatic calculation of fine amount and sending the emails until few days
+        // bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(issueReturnCode, BookAndUserAuditStatus.FREEZE.toString());
+        bookAndUserAuditTrial.setStatus(newStatus);
+        return "user "+user.getUserName()+" and respective issue return process has been frozen as "+comment.getDisplayName();
+    }
+
 
 }
