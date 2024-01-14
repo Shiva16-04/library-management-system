@@ -29,25 +29,25 @@ public class BookAndUserAuditTrialController {
         }
     }
     @PostMapping("/return-book")
-    public ResponseEntity returnBook(@RequestParam String userCode, @RequestParam String bookCode, @RequestParam ReturnItem returnItem, @RequestParam GeneralComments comment){
+    public ResponseEntity returnBook(@RequestParam String issueReturnCode, @RequestParam ReturnItem returnItem, @RequestParam GeneralComments comment){
         try {
-            return new ResponseEntity(bookAndUserAuditTrialService.returnBook(userCode, bookCode, returnItem, comment), HttpStatus.ACCEPTED);
+            return new ResponseEntity(bookAndUserAuditTrialService.returnBook(issueReturnCode, returnItem, comment), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     @PostMapping("/freeze-user")
-    public ResponseEntity freezeUser(@RequestParam String userCode, @RequestParam String bookCode, @RequestParam GeneralComments comment){
+    public ResponseEntity freezeUser(@RequestParam String issueReturnCode, @RequestParam GeneralComments comment){
         try {
-            return new ResponseEntity<>(bookAndUserAuditTrialService.freezeOrUnFreeze(userCode, bookCode, comment, CardStatus.FREEZE, BookAndUserAuditStatus.ISSUED, BookAndUserAuditStatus.FREEZE), HttpStatus.OK);
+            return new ResponseEntity<>(bookAndUserAuditTrialService.freezeOrUnFreeze(issueReturnCode, comment, CardStatus.FREEZE, BookAndUserAuditStatus.FREEZE), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     @PostMapping("/un-freeze-user")
-    public ResponseEntity UnFreezeUser(@RequestParam String userCode, @RequestParam String bookCode, @RequestParam GeneralComments comment){
+    public ResponseEntity UnFreezeUser(@RequestParam String issueReturnCode, @RequestParam GeneralComments comment){
         try {
-            return new ResponseEntity<>(bookAndUserAuditTrialService.freezeOrUnFreeze(userCode, bookCode, comment, CardStatus.ACTIVE, BookAndUserAuditStatus.FREEZE, BookAndUserAuditStatus.ISSUED), HttpStatus.OK);
+            return new ResponseEntity<>(bookAndUserAuditTrialService.freezeOrUnFreeze(issueReturnCode, comment, CardStatus.ACTIVE, BookAndUserAuditStatus.ISSUED), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -58,9 +58,9 @@ public class BookAndUserAuditTrialController {
     }
 
     @GetMapping("/calculate-fine-amount")
-    public ResponseEntity calculateFineAmount(@RequestParam String userCode, @RequestParam String bookCode, @RequestParam int additionalAmount){
+    public ResponseEntity calculateFineAmount(@RequestParam String issueReturnCode, @RequestParam int additionalAmount){
         try {
-            return new ResponseEntity(bookAndUserAuditTrialService.calculateFineAmount(userCode, bookCode, additionalAmount), HttpStatus.ACCEPTED);
+            return new ResponseEntity(bookAndUserAuditTrialService.calculateFineAmount(issueReturnCode, additionalAmount), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookAndUserAuditTrialRepository extends JpaRepository<BookAndUserAuditTrial, Integer> {
+
+    Optional<BookAndUserAuditTrial> findByIssueReturnCode(String code);
+
     @Query(value = "SELECT * FROM book_and_user_audit_trial b " +
             "WHERE (:issueReturnCode IS NULL OR b.issue_return_code = :issueReturnCode) " +
             "AND (:userCode IS NULL OR b.card_code = :userCode )" +
@@ -23,7 +26,7 @@ public interface BookAndUserAuditTrialRepository extends JpaRepository<BookAndUs
             "AND (((:returnedOnStart IS NULL AND :returnedOnEnd IS NULL) AND (:returnedOnIsNull IS NULL OR b.returned_on IS NULL = :returnedOnIsNull)) " +
             "OR (b.returned_on BETWEEN :returnedOnStart AND :returnedOnEnd)) " +
             "ORDER BY b.issue_date DESC", nativeQuery = true)
-    List<BookAndUserAuditTrial> customQuery(
+    List<BookAndUserAuditTrial> bookAndUserAuditTrialFilteredList(
             @Param("issueReturnCode") String issueReturnCode,
             @Param("userCode") String userCode,
             @Param("bookCode") String bookCode,

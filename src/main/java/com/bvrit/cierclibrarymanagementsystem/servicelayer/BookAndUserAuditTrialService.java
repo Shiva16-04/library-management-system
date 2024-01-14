@@ -17,10 +17,11 @@ public interface BookAndUserAuditTrialService {
                                                                          LocalDate returnedOnStart, LocalDate returnedOnEnd,  Boolean returnedOnIsNull);
     public void updateFinePerDayAndMaxBooksIssuePerUser(int finePerDay, int maxBooksIssuePerUser);
     public String issueBook(String userCode, String bookCode)throws Exception;
-    public String returnBook(String userCode, String bookCode, ReturnItem returnItem, GeneralComments comment)throws Exception;
-    public int calculateFineAmount(String userCode, String bookCode, int additionalAmount)throws Exception;
+    public String returnBook(String issueReturnCode, ReturnItem returnItem, GeneralComments comment)throws Exception;
+    public String sendMailToBookOverdueBorrowers()throws Exception;
+    public int calculateFineAmount(String issueReturnCode, int additionalAmount)throws Exception;
     public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList);
     public List<UserResponse> getActiveBookBorrowersList()throws Exception;
-    public String freezeOrUnFreeze(String userCode, String bookCode, GeneralComments comment, CardStatus cardStatus, BookAndUserAuditStatus presentStatus, BookAndUserAuditStatus newStatus)throws Exception;
+    public String freezeOrUnFreeze(String issueReturnCode, GeneralComments comment, CardStatus newCardStatus, BookAndUserAuditStatus newStatus)throws Exception;
     public String updateStatusByBookAndUserCodeAndStatus(String bookCode, String userCode, BookAndUserAuditStatus oldStatus, BookAndUserAuditStatus newStatus);
 }
