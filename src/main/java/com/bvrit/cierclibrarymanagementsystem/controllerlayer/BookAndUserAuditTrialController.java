@@ -74,9 +74,13 @@ public class BookAndUserAuditTrialController {
             return new ResponseEntity(e.getMessage(), HttpStatus.OK);
         }
     }
-    @GetMapping("/get-user-book-issue-return-record-list-by-status")
-    public ResponseEntity getUserBookIssueReturnRecordListByStatus(@RequestParam List<BookAndUserAuditStatus> bookAndUserAuditStatusList){
-        return new ResponseEntity(bookAndUserAuditTrialService.getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList), HttpStatus.OK);
+    @PatchMapping("/update-book-and-user-audit-trial-status")
+    public ResponseEntity updateBookAndUserAuditTrialStatus(@RequestParam String issueReturnCode, BookAndUserAuditStatus status){
+        try {
+            return new ResponseEntity<>(bookAndUserAuditTrialService.updateStatusByBookAndUserCodeAndStatus(issueReturnCode, status), HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
     @GetMapping("/get-filtered-book-user-audit-trial-list")
     public ResponseEntity getAuditTrialFilteredList(@RequestParam(required = false) String issueReturnCode,

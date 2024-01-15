@@ -20,8 +20,7 @@ public interface BookAndUserAuditTrialService {
     public String returnBook(String issueReturnCode, ReturnItem returnItem, GeneralComments comment)throws Exception;
     public String sendMailToBookOverdueBorrowers()throws Exception;
     public int calculateFineAmount(String issueReturnCode, int additionalAmount)throws Exception;
-    public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList);
     public List<UserResponse> getActiveBookBorrowersList()throws Exception;
     public String freezeOrUnFreeze(String issueReturnCode, GeneralComments comment, CardStatus newCardStatus, BookAndUserAuditStatus newStatus)throws Exception;
-    public String updateStatusByBookAndUserCodeAndStatus(String bookCode, String userCode, BookAndUserAuditStatus oldStatus, BookAndUserAuditStatus newStatus);
+    public String updateStatusByBookAndUserCodeAndStatus(String issueReturnCode, BookAndUserAuditStatus newStatus)throws Exception;
 }

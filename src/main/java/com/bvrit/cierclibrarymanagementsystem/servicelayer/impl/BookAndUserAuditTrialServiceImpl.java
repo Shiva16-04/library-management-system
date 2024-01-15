@@ -141,12 +141,12 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         //saving the child instead of saving both the parents to avoid duplicates
         bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
 
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
+
         //sending book issue confirmation mail to the user
         String emailBody=emailGenerator.bookIssueEmailGenerator(user.getUserName(),book.getName(),bookAndUserAuditTrial.getReturnDate());
         mailConfigurationService.mailSender(SENDER_EMAIL,user.getEmail(),emailBody, "Book Issue Confirmation");
-
-        //initiating transaction creation
-        transactionService.createTransaction(TransactionStatus.ISSUED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
 
          return "Book "+book.getName()+" is successfully issued to the user "+user.getUserName();
     }
@@ -204,19 +204,19 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         // saving the child of both the parents....cascading effect
         bookAndUserAuditTrialRepository.save(bookAndUserAuditTrial);
 
+        //initiating transaction creation
+        transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
+
         //sending book return confirmation mail to the user
         String emailBody = emailGenerator.bookReturnEmailGenerator(user.getUserName(), book.getName(), LocalDate.now());
         mailConfigurationService.mailSender(SENDER_EMAIL, user.getEmail(), emailBody, "Book Return Confirmation");
-
-        //initiating transaction creation
-        transactionService.createTransaction(TransactionStatus.RETURNED, bookCode, userCode, authenticationDetailsService.getAuthenticationDetails());
 
         return "Book" + book.getName() + " has been successfully returned to the English Reader's Club by " + user.getUserName();
     }
 
 
     @Transactional
-    @Scheduled()
+    @Scheduled(cron = "0 0 10 ? * SUN,THU *")
     public String sendMailToBookOverdueBorrowers()throws Exception{
         List<String>statusList=new ArrayList<>(Arrays.asList("ISSUED", "PENDING", "FREEZE"));
         List<String>returnItemList=getReturnItemStringList();
@@ -290,37 +290,36 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         return fineAmount;
     }
 
-    public String updateStatusByBookAndUserCodeAndStatus(String bookCode, String userCode, BookAndUserAuditStatus oldStatus, BookAndUserAuditStatus newStatus){
-        Optional<BookAndUserAuditTrial> optionalBookAndUserAuditTrial=bookAndUserAuditTrialRepository.findByBookCodeAndCardCodeAndStatus(bookCode, userCode, oldStatus);
-        if(optionalBookAndUserAuditTrial.isEmpty()){
+    public String updateStatusByBookAndUserCodeAndStatus(String issueReturnCode, BookAndUserAuditStatus newStatus)throws Exception{
+        List<String>statusList=getBookAndUserAuditStatusStringList();
+        List<String>returnItemList=getReturnItemStringList();
 
+        List<BookAndUserAuditTrial> bookAndUserAuditTrialList= bookAndUserAuditTrialRepository.bookAndUserAuditTrialFilteredList
+                (issueReturnCode, null, null, statusList,returnItemList,null,null,
+                        null,null,null,null,null);
+        if(bookAndUserAuditTrialList.size()==0){
+            throw new BookAndUserAuditTrialNotFoundException("Invalid Book And User Audit Trial Code");
         }
-        BookAndUserAuditTrial bookAndUserAuditTrial=optionalBookAndUserAuditTrial.get();
+
+        BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialList.get(0);
         bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(bookAndUserAuditTrial.getIssueReturnCode(), newStatus.toString());
         return "updated Successfully";
     }
-    public List<BookAndUserAuditTrialResponse> getBookAndUserAuditTrialListByStatus(List<BookAndUserAuditStatus> bookAndUserAuditStatusList){
-        List<BookAndUserAuditTrial>bookAndUserAuditTrialList=bookAndUserAuditTrialRepository.findByStatusIn(bookAndUserAuditStatusList);
-        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=new ArrayList<>();
-        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
-            BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse= BookAndUserAuditTrialTransformer.bookAndUserAuditTrialToBookAndUserAuditTrialResponse(bookAndUserAuditTrial);
-            bookAndUserAuditTrialResponseList.add(bookAndUserAuditTrialResponse);
-        }
-        return bookAndUserAuditTrialResponseList;
-    }
     public List<UserResponse> getActiveBookBorrowersList()throws Exception{
 
-        List<BookAndUserAuditStatus>bookAndUserAuditStatusList=new ArrayList<>();
-        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.ISSUED);
-        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.PENDING);
-        bookAndUserAuditStatusList.add(BookAndUserAuditStatus.FREEZE);
-
+        List<String>statusList=new ArrayList<>(Arrays.asList("ISSUED", "PENDING", "FREEZE"));
+        List<String>returnItemList=getReturnItemStringList();
 
         //calling the other method to get the list based on the status
-        List<BookAndUserAuditTrialResponse>bookAndUserAuditTrialResponseList=getBookAndUserAuditTrialListByStatus(bookAndUserAuditStatusList);
+        List<BookAndUserAuditTrial> bookAndUserAuditTrialList= bookAndUserAuditTrialRepository.bookAndUserAuditTrialFilteredList
+                (null, null, null, statusList,returnItemList,null,null,
+                        null,null,null,null,null);
+        if(bookAndUserAuditTrialList.size()==0){
+            throw new BookAndUserAuditTrialNotFoundException("Invalid Book And User Audit Trial Code");
+        }
         List<UserResponse>userResponseList=new ArrayList<>();
-        for(BookAndUserAuditTrialResponse bookAndUserAuditTrialResponse: bookAndUserAuditTrialResponseList){
-            User user=userService.findUserByUserCode(bookAndUserAuditTrialResponse.getCardCode());
+        for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
+            User user=userService.findUserByUserCode(bookAndUserAuditTrial.getCardCode());
             UserResponse userResponse= UserTransformer.userToUserResponse(user);
             userResponseList.add(userResponse);
         }

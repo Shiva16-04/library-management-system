@@ -11,6 +11,7 @@ import java.util.List;
 public interface AuthorService {
     public String addAuthor(AuthorRequest authorRequest)throws Exception;
     public String deleteAuthorByAuthorCode(String authorCode) throws Exception;
+
     public AuthorResponse findAuthorByAuthorCode(String authorCode) throws AuthorNotFoundException;
     public AuthorResponse findAuthorByAuthorEmail(String email) throws AuthorNotFoundException;
     public List<BookResponse> getBookListByAuthorCode(String authorCode) throws AuthorNotFoundException;
