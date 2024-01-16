@@ -39,6 +39,6 @@ public class Author {
     //validating email using RFC 5322 standard
     String email;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL)
     List<Book> bookList;
 }

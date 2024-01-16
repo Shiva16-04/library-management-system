@@ -2,11 +2,9 @@ package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
+import com.bvrit.cierclibrarymanagementsystem.enums.GenreEnum;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.CardService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,9 +26,9 @@ public class BookController {
 
 
     @PostMapping("/add-book")
-    public ResponseEntity addBook(@RequestBody BookRequest bookRequest, @RequestParam String authorCode) {
+    public ResponseEntity addBook(@RequestBody BookRequest bookRequest, @RequestParam List<String> authorCodeList, @RequestParam List<GenreEnum>genreEnumList) {
         try {
-            return new ResponseEntity<>(bookService.addBook(bookRequest, authorCode), HttpStatus.CREATED);
+            return new ResponseEntity<>(bookService.addBook(bookRequest, authorCodeList, genreEnumList), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -55,9 +53,9 @@ public class BookController {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    @GetMapping("/get-book-list-by-genre")
-    public ResponseEntity getBookListByGenre(@RequestParam Genre genre){
-        return new ResponseEntity(bookService.getBookListByGenre(genre),HttpStatus.OK);
+    @GetMapping("/get-book-list-by-genreEnum")
+    public ResponseEntity getBookListByGenre(@RequestParam GenreEnum genreEnum){
+        return new ResponseEntity(bookService.getBookListByGenre(genreEnum),HttpStatus.OK);
     }
 
     @GetMapping("/get-book-list-by-book-status")

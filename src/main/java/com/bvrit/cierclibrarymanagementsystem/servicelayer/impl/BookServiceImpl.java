@@ -4,7 +4,7 @@ import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
+import com.bvrit.cierclibrarymanagementsystem.enums.GenreEnum;
 import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.exceptions.BookCannotBeRemovedFromDatabaseException;
@@ -12,17 +12,16 @@ import com.bvrit.cierclibrarymanagementsystem.exceptions.BookNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.generators.BookCodeGenerator;
 import com.bvrit.cierclibrarymanagementsystem.models.Author;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
+import com.bvrit.cierclibrarymanagementsystem.models.Genre;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthenticationDetailsService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.MailConfigurationService;
-import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,14 +40,15 @@ public class BookServiceImpl implements BookService {
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
 
-    public String addBook(BookRequest bookRequest, String authorCode)throws Exception{
+    @Autowired
+    private GenreService genreService;
 
-        Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
-        if(!optionalAuthor.isPresent()){
-            throw new AuthorNotFoundException("Author with "+authorCode+" is not present in the database");
+    public String addBook(BookRequest bookRequest, List<String> authorCodeList, List<GenreEnum>genreEnumList)throws Exception{
+        List<Author>authorList=authorRepository.findByAuthorCodeIn(authorCodeList);
+        if(authorCodeList.size()==0|| authorCodeList.size()!=authorList.size()){
+            throw new AuthorNotFoundException("Author(s) with "+authorCodeList+" is/are not present in the database");
         }
 
-        Author author=optionalAuthor.get();
         Book book= BookTransformer.bookRequestToBook(bookRequest);
 
         //setting attribute
@@ -56,13 +56,16 @@ public class BookServiceImpl implements BookService {
         book.setBookCode(bookCode);
 
         //setting the foreign keys
-        book.setAuthor(author);
+        List<Genre>genreList=genreService.getGenreList(genreEnumList);
+        book.setGenreList(genreList);
+        book.setAuthorList(authorList);
 
         //bidirectionally mapping
-        author.getBookList().add(book);
+        for(Author author: authorList)author.getBookList().add(book);
+        for(Genre genre: genreList)genre.getBookList().add(book);
 
         //saving the author which automatically saves book
-        authorRepository.save(author);
+        bookRepository.save(book);
 
         //initiating transaction creation
         transactionService.createTransaction(TransactionStatus.BOOK_ADDED, bookCode, "", authenticationDetailsService.getAuthenticationDetails());
@@ -95,8 +98,10 @@ public class BookServiceImpl implements BookService {
         return bookResponseList;
     }
 
-    public List<BookResponse> getBookListByGenre(Genre genre){
-        List<Book>bookList=bookRepository.findBookListByGenre(genre);
+    public List<BookResponse> getBookListByGenre(GenreEnum genreEnum){
+        List<GenreEnum>genreEnumList=new ArrayList<>(Arrays.asList(genreEnum));
+        List<Genre>genreList=genreService.getGenreList(genreEnumList);
+        List<Book>bookList=bookRepository.findBookListByGenreListIn(genreList);
         return bookListToBookResponseList(bookList);
     }
     public List<BookResponse> getBookListByBookStatus(BookStatus bookStatus){
@@ -110,6 +115,8 @@ public class BookServiceImpl implements BookService {
         for(String bookCode: bookCodeList) {
             Book book = findBookByBookCode(bookCode);
             if(book.getBookStatus() == BookStatus.AVAILABLE) {
+
+
                 bookRepository.deleteById(book.getId());
 
                 //initiating transaction creation
@@ -143,4 +150,5 @@ public class BookServiceImpl implements BookService {
         }
         return bookResponseList;
     }
+
 }

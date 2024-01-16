@@ -54,5 +54,17 @@ public class AuthorController {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/get-filtered-author-list")
+    public ResponseEntity getAuthorFilteredList(@RequestParam(required = false) String authorCode,
+                                                @RequestParam(required = false) String bookCode,
+                                                @RequestParam(required = false) String name,
+                                                @RequestParam(required = false) Integer minAge,
+                                                @RequestParam(required = false) Integer maxAge,
+                                                @RequestParam(required = false) Double minRating,
+                                                @RequestParam(required = false) Double maxRating,
+                                                @RequestParam(required = false) String email){
+        return new ResponseEntity<>(authorService.getAuthorFilteredList(authorCode, bookCode, name, minAge, maxAge, minRating, maxRating, email), HttpStatus.ACCEPTED);
+
+    }
 
 }

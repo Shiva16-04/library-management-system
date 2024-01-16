@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .requestMatchers( "/user/find-user-by-user-code/{userCode}", "/user/find-user-by-user-email", "/user/delete-user-by-user-code").hasRole("ADMIN")
                 .requestMatchers("/author/add-author", "/author/delete-author-by-author-code", "/book/add-book", "/book/update-books-status", "/book/delete-book").hasRole("ADMIN")
                 .requestMatchers("/issue-return/**", "/transaction/**").hasRole("ADMIN")
-                .requestMatchers("/book/get-book-by-book-code/{bookCode}", "/book/get-book-list-by-book-name", "/book/get-book-list-by-genre", "/book/get-book-list-by-book-status").hasAnyRole("ADMIN", "STUDENT")
+                .requestMatchers("/book/get-book-by-book-code/{bookCode}", "/book/get-book-list-by-book-name", "/book/get-book-list-by-genreEnum", "/book/get-book-list-by-book-status").hasAnyRole("ADMIN", "STUDENT")
                 .requestMatchers("/author/find-author-by-author-code", "/author/find-author-by-author-email", "/author/get-book-list-by-author-code").hasAnyRole("ADMIN", "STUDENT")
                 .anyRequest()
                 .authenticated()

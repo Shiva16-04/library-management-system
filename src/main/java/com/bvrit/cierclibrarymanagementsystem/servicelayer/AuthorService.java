@@ -9,6 +9,8 @@ import java.util.List;
 
 
 public interface AuthorService {
+    public List<AuthorResponse> getAuthorFilteredList(String authorCode, String bookCode, String name, Integer minAge, Integer maxAge,
+                                                      Double minRating, Double maxRating, String email);
     public String addAuthor(AuthorRequest authorRequest)throws Exception;
     public String deleteAuthorByAuthorCode(String authorCode) throws Exception;
 

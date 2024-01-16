@@ -1,6 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.enums;
 
-public enum Genre {
+public enum GenreEnum {
     ACTION("Action"),
     ADVENTURE("Adventure"),
     AUTO_BIOGRAPHY("Auto-biography"),
@@ -17,7 +17,7 @@ public enum Genre {
 
     private final String displayName;
 
-    Genre(String displayName) {
+    GenreEnum(String displayName) {
         this.displayName = displayName;
     }
 

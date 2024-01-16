@@ -35,6 +35,17 @@ public class AuthorServiceImpl implements AuthorService {
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
 
+
+    public List<AuthorResponse> getAuthorFilteredList(String authorCode, String bookCode, String name, Integer minAge, Integer maxAge,
+                                                      Double minRating, Double maxRating, String email){
+        List<Author>authorList=authorRepository.authorFilteredList(authorCode, bookCode, name, minAge, maxAge, minRating, maxRating, email);
+        List<AuthorResponse>authorResponseList=new ArrayList<>();
+        for(Author author: authorList){
+            authorResponseList.add(AuthorTransformer.authorToAuthorResponse(author));
+        }
+        return authorResponseList;
+    }
+
     public String addAuthor(AuthorRequest authorRequest)throws Exception{
         Optional<Author>optionalAuthor=authorRepository.findAuthorByEmail(authorRequest.getEmail());
         if(optionalAuthor.isPresent()){

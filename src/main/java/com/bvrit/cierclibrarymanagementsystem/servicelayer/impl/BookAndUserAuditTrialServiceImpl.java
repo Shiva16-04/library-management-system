@@ -216,7 +216,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
 
     @Transactional
-    @Scheduled(cron = "0 0 10 ? * SUN,THU *")
+    @Scheduled(cron = "0 0 10 ? * *")
     public String sendMailToBookOverdueBorrowers()throws Exception{
         List<String>statusList=new ArrayList<>(Arrays.asList("ISSUED", "PENDING", "FREEZE"));
         List<String>returnItemList=getReturnItemStringList();

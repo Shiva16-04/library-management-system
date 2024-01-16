@@ -1,8 +1,8 @@
 package com.bvrit.cierclibrarymanagementsystem.repositorylayer;
 
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
-import com.bvrit.cierclibrarymanagementsystem.enums.Genre;
 import com.bvrit.cierclibrarymanagementsystem.models.Book;
+import com.bvrit.cierclibrarymanagementsystem.models.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +17,7 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findBookByName(String bookName);
     String findBookNameByBookCode(String bookCode);
     List<Book> findBookListByBookStatus(BookStatus bookStatus);
-    List<Book> findBookListByGenre(Genre genre);
+    List<Book> findBookListByGenreListIn(List<Genre> genreList);
     Optional<BookStatus> findByBookCode(String bookCode);
 //    void deleteByBookCode(String bookCode);
     @Query(value = "SELECT MAX(CAST(SUBSTRING(book_code, 7) AS SIGNED)) FROM book WHERE SUBSTRING(book_code, 1, 4) = :year", nativeQuery = true)
