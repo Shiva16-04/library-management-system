@@ -103,7 +103,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
     }
 
     public String issueBook(String userCode, String bookCode)throws Exception{
-        Book book=bookService.findBookByBookCode(bookCode);
+        Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
 
@@ -176,7 +176,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         //generally calculating the final fine amount
         calculateFineAmount(issueReturnCode, 0);
 
-        Book book=bookService.findBookByBookCode(bookCode);
+        Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);;
         User user=userService.findUserByUserCode(userCode);
         Card card=user.getCard();
 
@@ -236,7 +236,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             int fineAmount=calculateFineAmount(issueReturnCode, 0);
             if(fineAmount>0){
                 UserResponse userResponse=userService.getUserByUserCode(userCode);
-                BookResponse bookResponse=bookService.getBookByBookCode(bookCode);
+                BookResponse bookResponse=bookService.getFilteredBookResponseList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);
 
                 bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(issueReturnCode, newStatus.toString());
 
@@ -263,7 +263,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         String bookCode=bookAndUserAuditTrial.getBookCode();
 
         //finding book and user from the attributes
-        Book book=bookService.findBookByBookCode(bookCode);
+        Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);;
         User user=userService.findUserByUserCode(cardCode);
         Card card=user.getCard();
 

@@ -12,13 +12,19 @@ import java.util.List;
 
 
 public interface BookService {
-    public String addBook(BookRequest bookRequest, List<String> authorCodeList, List<GenreEnum>genreEnumList)throws Exception;
+    public List<BookResponse> getFilteredBookResponseList(String bookCode, String authorCode, String name, Integer readTime,
+                                                          List<GenreEnum>genres, List<BookStatus>statuses,
+                                                          Double minRating, Double maxRating,
+                                                          Integer minPages, Integer maxPages,
+                                                          Integer minPrice, Integer maxPrice);
+    public List<Book> getFilteredBookList(String bookCode, String authorCode, String name,
+                                                            Integer readTime,
+                                                            List<GenreEnum>genres, List<BookStatus>statuses,
+                                                            Double minRating, Double maxRating,
+                                                            Integer minPages, Integer maxPages,
+                                                            Integer minPrice, Integer maxPrice);
     @Transactional
     public String updateBooksStatus(List<String>bookCodeList, BookStatus bookStatus);
-    public BookResponse getBookByBookCode(String bookCode) throws BookNotFoundException;
-    public List<BookResponse> getBookListByBookName(String bookName);
-    public List<BookResponse> getBookListByGenre(GenreEnum genreEnum);
-    public List<BookResponse> getBookListByBookStatus(BookStatus bookStatus);
-    public Book findBookByBookCode(String bookCode)throws Exception;
-    public String deleteBookByBookCode(List<String> bookCodeList) throws Exception;
+    public String addBook(BookRequest bookRequest, List<String> authorCodeList, List<GenreEnum>genreEnumList)throws Exception;
+    public String deleteBookList(List<String> bookCodeList) throws Exception;
 }

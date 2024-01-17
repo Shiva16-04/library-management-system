@@ -3,6 +3,7 @@ package com.bvrit.cierclibrarymanagementsystem.servicelayer.impl;
 import com.bvrit.cierclibrarymanagementsystem.Transformers.BookTransformer;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.BookRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.BookResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.BookAndUserAuditStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.BookStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.GenreEnum;
 import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
@@ -17,6 +18,7 @@ import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.BookRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,23 +30,86 @@ import java.util.Optional;
 @Service
 public class BookServiceImpl implements BookService {
     @Autowired
-    private TransactionService transactionService;
-    @Autowired
     private BookRepository bookRepository;
-    @Autowired
-    private AuthorRepository authorRepository;
     @Autowired
     private BookCodeGenerator bookCodeGenerator;
     @Autowired
     private MailConfigurationService mailConfigurationService;
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
-
+    @Autowired
+    private TransactionService transactionService;
     @Autowired
     private GenreService genreService;
+    @Autowired
+    private AuthorService authorService;
 
+
+    public List<BookResponse> getFilteredBookResponseList(String bookCode, String authorCode, String name,
+                                                          Integer readTime,
+                                                          List<GenreEnum>genres, List<BookStatus>statuses,
+                                                          Double minRating, Double maxRating,
+                                                          Integer minPages, Integer maxPages,
+                                                          Integer minPrice, Integer maxPrice){
+
+        List<Book>bookList=getFilteredBookList(bookCode, authorCode, name, readTime,
+                genres, statuses, minRating, maxRating, minPages, maxPages, minPrice, maxPrice);
+
+        List<BookResponse>bookResponseList=new ArrayList<>();
+        for(Book book:bookList){
+            bookResponseList.add(BookTransformer.bookToBookResponse(book));
+        }
+        return bookResponseList;
+    }
+    public List<Book> getFilteredBookList(String bookCode, String authorCode, String name,
+                                          Integer readTime,
+                                          List<GenreEnum>genres, List<BookStatus>statuses,
+                                          Double minRating, Double maxRating,
+                                          Integer minPages, Integer maxPages,
+                                          Integer minPrice, Integer maxPrice){
+        List<String>statusList=new ArrayList<>();
+        if(statuses != null && !statuses.isEmpty()){
+            for(BookStatus bookStatus: statuses){
+                statusList.add(bookStatus.toString());
+            }
+        }else {
+            statusList=getBookStatusStringList();
+        }
+        List<String>genreList=new ArrayList<>();
+        if(genres != null && !genres.isEmpty()){
+            for(GenreEnum genreEnum: genres){
+                genreList.add(genreEnum.getDisplayName());
+            }
+        }else{
+            genreList=getGenreStringList();
+        }
+        List<Book>bookList=bookRepository.findBooksByFilteredBookList(bookCode, authorCode, name, readTime,
+                genreList, statusList, minRating, maxRating, minPages, maxPages, minPrice, maxPrice);
+        return bookList;
+    }
+    private List<String> getBookStatusStringList(){
+        List<String>statusList=new ArrayList<>();
+        for(BookStatus bookStatus: BookStatus.values()){
+            statusList.add(bookStatus.toString());
+        }
+        return statusList;
+    }
+    private List<String> getGenreStringList(){
+        List<String>genreList=new ArrayList<>();
+        for(GenreEnum genreEnum: GenreEnum.values()){
+            genreList.add(genreEnum.getDisplayName());
+        }
+        return genreList;
+    }
+    @Transactional
+    public String updateBooksStatus(List<String>bookCodeList, BookStatus bookStatus){
+        for(String bookCode:bookCodeList){
+            bookRepository.updateBookStatusByBookCode(bookStatus, bookCode);
+        }
+        return "Books status changed successfully";
+    }
     public String addBook(BookRequest bookRequest, List<String> authorCodeList, List<GenreEnum>genreEnumList)throws Exception{
-        List<Author>authorList=authorRepository.findByAuthorCodeIn(authorCodeList);
+        List<Author>authorList=authorService.getAuthorList(authorCodeList);
         if(authorCodeList.size()==0|| authorCodeList.size()!=authorList.size()){
             throw new AuthorNotFoundException("Author(s) with "+authorCodeList+" is/are not present in the database");
         }
@@ -71,51 +136,17 @@ public class BookServiceImpl implements BookService {
         transactionService.createTransaction(TransactionStatus.BOOK_ADDED, bookCode, "", authenticationDetailsService.getAuthenticationDetails());
         return "Book "+bookRequest.getName()+" is successfully added to the database";
     }
-    @Transactional
-    public String updateBooksStatus(List<String>bookCodeList, BookStatus bookStatus){
-        for(String bookCode:bookCodeList){
-            bookRepository.updateBookStatusByBookCode(bookStatus, bookCode);
-        }
-        return "Books status changed successfully";
-    }
 
-    public BookResponse getBookByBookCode(String bookCode) throws BookNotFoundException {
-        Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
-        if(!optionalBook.isPresent()){
-            throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
-        }
-        Book book=optionalBook.get();
-        BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
-        return bookResponse;
-    }
-    public List<BookResponse> getBookListByBookName(String bookName){
-        List<Book>bookList=bookRepository.findBookByName(bookName);
-        List<BookResponse>bookResponseList=new ArrayList<>();
-        for(Book book: bookList){
-            BookResponse bookResponse=BookTransformer.bookToBookResponse(book);
-            bookResponseList.add(bookResponse);
-        }
-        return bookResponseList;
-    }
-
-    public List<BookResponse> getBookListByGenre(GenreEnum genreEnum){
-        List<GenreEnum>genreEnumList=new ArrayList<>(Arrays.asList(genreEnum));
-        List<Genre>genreList=genreService.getGenreList(genreEnumList);
-        List<Book>bookList=bookRepository.findBookListByGenreListIn(genreList);
-        return bookListToBookResponseList(bookList);
-    }
-    public List<BookResponse> getBookListByBookStatus(BookStatus bookStatus){
-        List<Book>bookList=bookRepository.findBookListByBookStatus(bookStatus);
-        return bookListToBookResponseList(bookList);
-    }
-
-    public String deleteBookByBookCode(List<String> bookCodeList) throws Exception {
+    public String deleteBookList(List<String> bookCodeList) throws Exception {
         List<String>removedBookNameList=new ArrayList<>();
         List<String>notRemovedBookNameList=new ArrayList<>();
         for(String bookCode: bookCodeList) {
-            Book book = findBookByBookCode(bookCode);
+            Book book=getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);;
             if(book.getBookStatus() == BookStatus.AVAILABLE) {
 
+                //removing it's references from authors
+                List<Author>authorList=book.getAuthorList();
+                for(Author author: authorList)author.getBookList().remove(book);
 
                 bookRepository.deleteById(book.getId());
 
@@ -134,14 +165,6 @@ public class BookServiceImpl implements BookService {
     }
 
     //below methods for internal purpose....not to call through API
-    public Book findBookByBookCode(String bookCode)throws Exception{
-        Optional<Book>optionalBook=bookRepository.findBookByBookCode(bookCode);
-        if(!optionalBook.isPresent()){
-            throw new BookNotFoundException("Book with the particular Book code "+bookCode+" is not present in the database");
-        }
-        return optionalBook.get();
-    }
-
     private List<BookResponse> bookListToBookResponseList(List<Book>bookList){
         List<BookResponse>bookResponseList=new ArrayList<>();
         for(Book book: bookList){

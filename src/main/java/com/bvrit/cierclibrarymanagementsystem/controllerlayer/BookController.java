@@ -33,46 +33,34 @@ public class BookController {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/get-filtered-book-list")
+    public ResponseEntity getFilteredBookList(@RequestParam(required = false) String bookCode,
+                                              @RequestParam(required = false) String authorCode,
+                                              @RequestParam(required = false) String name,
+                                              @RequestParam(required = false) Integer readTime,
+                                              @RequestParam(required = false) List<GenreEnum>genres,
+                                              @RequestParam(required = false) List<BookStatus>statuses,
+                                              @RequestParam(required = false) Double minRating,
+                                              @RequestParam(required = false) Double maxRating,
+                                              @RequestParam(required = false) Integer minPages,
+                                              @RequestParam(required = false) Integer maxPages,
+                                              @RequestParam(required = false) Integer minPrice,
+                                              @RequestParam(required = false) Integer maxPrice){
+        return new ResponseEntity<>(bookService.getFilteredBookResponseList(bookCode, authorCode, name, readTime,
+                genres, statuses, minRating, maxRating, minPages, maxPages, minPrice, maxPrice), HttpStatus.ACCEPTED);
+    }
     @PatchMapping("/update-books-status")
     public ResponseEntity updateBooksStatus(@RequestParam List<String>bookCodeList, @RequestParam BookStatus bookStatus){
         return new ResponseEntity<>(bookService.updateBooksStatus(bookCodeList, bookStatus),HttpStatus.OK);
     }
-    @GetMapping("/get-book-by-book-code/{bookCode}")
-    public ResponseEntity getBookByBookCode(@PathVariable("bookCode") String bookCode) {
-        try {
-            return new ResponseEntity<>(bookService.getBookByBookCode(bookCode), HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    @GetMapping("/get-book-list-by-book-name")
-    public ResponseEntity getBookListByBookName(@RequestParam String bookName) {
-        try {
-            return new ResponseEntity<>(bookService.getBookListByBookName(bookName), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    @GetMapping("/get-book-list-by-genreEnum")
-    public ResponseEntity getBookListByGenre(@RequestParam GenreEnum genreEnum){
-        return new ResponseEntity(bookService.getBookListByGenre(genreEnum),HttpStatus.OK);
-    }
-
-    @GetMapping("/get-book-list-by-book-status")
-    public ResponseEntity getBookListByBookStatus(@RequestParam BookStatus bookStatus){
-        return new ResponseEntity(bookService.getBookListByBookStatus(bookStatus),HttpStatus.OK);
-    }
-
 
     @DeleteMapping("/delete-book")
     public ResponseEntity deleteBookByBookCode(@RequestParam List<String> bookCodeList){
         try {
-            return new ResponseEntity<>(bookService.deleteBookByBookCode(bookCodeList),HttpStatus.OK);
+            return new ResponseEntity<>(bookService.deleteBookList(bookCodeList),HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
     }
-
-
 }

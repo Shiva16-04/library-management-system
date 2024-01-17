@@ -16,11 +16,14 @@ import com.bvrit.cierclibrarymanagementsystem.models.Book;
 import com.bvrit.cierclibrarymanagementsystem.repositorylayer.AuthorRepository;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthenticationDetailsService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
+import com.bvrit.cierclibrarymanagementsystem.servicelayer.BookService;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.TransactionService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,10 +37,12 @@ public class AuthorServiceImpl implements AuthorService {
     private TransactionService transactionService;
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
+    @Autowired
+    private BookService bookService;
 
 
-    public List<AuthorResponse> getAuthorFilteredList(String authorCode, String bookCode, String name, Integer minAge, Integer maxAge,
-                                                      Double minRating, Double maxRating, String email){
+    public List<AuthorResponse> getFilteredAuthorResponseList(String authorCode, String bookCode, String name, Integer minAge, Integer maxAge,
+                                                              Double minRating, Double maxRating, String email){
         List<Author>authorList=authorRepository.authorFilteredList(authorCode, bookCode, name, minAge, maxAge, minRating, maxRating, email);
         List<AuthorResponse>authorResponseList=new ArrayList<>();
         for(Author author: authorList){
@@ -45,11 +50,14 @@ public class AuthorServiceImpl implements AuthorService {
         }
         return authorResponseList;
     }
+    public List<Author> getAuthorList(List<String>authorCodeList){
+        return authorRepository.findByAuthorCodeIn(authorCodeList);
+    }
 
     public String addAuthor(AuthorRequest authorRequest)throws Exception{
-        Optional<Author>optionalAuthor=authorRepository.findAuthorByEmail(authorRequest.getEmail());
-        if(optionalAuthor.isPresent()){
-            throw new AuthorAlreadyPresentException("Author "+authorRequest.getName()+" is already present in the database with author id "+optionalAuthor.get().getId());
+        List<Author> authorList=authorRepository.authorFilteredList(null, null, null, null, null, null, null, authorRequest.getEmail());
+        if(authorList.size()!=0){
+            throw new AuthorAlreadyPresentException("Author "+authorRequest.getName()+" is already present in the database with author id "+authorList.get(0).getId());
         }
         Author author= AuthorTransformer.authorRequestToAuthor(authorRequest);
 
@@ -64,61 +72,29 @@ public class AuthorServiceImpl implements AuthorService {
         transactionService.createTransaction(TransactionStatus.AUTHOR_ADDED, savedAuthor.getAuthorCode(), "", authenticationDetailsService.getAuthenticationDetails());
         return "Author "+authorRequest.getName()+" is successfully added to the database";
     }
-    public String deleteAuthorByAuthorCode(String authorCode) throws Exception{
-        Author author=getAuthorEntityByAuthorCode(authorCode);
-        List<Book>bookList=author.getBookList();
+//    @Transactional(rollbackOn = Exception.class)
+    public String deleteAuthor(String authorCode) throws Exception {
+        Author author = authorRepository.authorFilteredList(authorCode, null, null, null, null, null, null, null).get(0);
+        List<Book> bookList = author.getBookList();
+        List<String>bookCodeList=new ArrayList<>();
 
-        for(Book book: bookList){
-            if(book.getBookStatus()!= BookStatus.AVAILABLE){
-                throw new AuthorCannotBeRemovedFromDatabaseException("Author "+author.getName()+" cannot be removed from the database because, book "+book.getName()+" is not available." +
+        for (Book book : bookList) {
+            if (book.getBookStatus() != BookStatus.AVAILABLE) {
+                throw new AuthorCannotBeRemovedFromDatabaseException("Author " + author.getName() + " cannot be removed from the database because, book " + book.getName() + " is not available." +
                         "\nTo delete the author, status of all books of the author should be AVAILABLE");
             }
+            if(book.getAuthorList().size()>1){
+                bookCodeList.add(book.getBookCode());
+            }
         }
+        bookService.deleteBookList(bookCodeList);
+
+        //deleting the author
         authorRepository.deleteById(author.getId());
 
         //initiating transaction creation
         transactionService.createTransaction(TransactionStatus.AUTHOR_REMOVED, authorCode, "", authenticationDetailsService.getAuthenticationDetails());
-        return "Author "+author.getName()+" is removed from the database successfully";
-    }
-
-
-    //searching authors (or) finding authors with author code and author mail id which are unique
-    public AuthorResponse findAuthorByAuthorCode(String authorCode) throws AuthorNotFoundException {
-        Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
-        if(!optionalAuthor.isPresent()){
-            throw new AuthorNotFoundException("Author not found with the particular author code: "+authorCode+". Try again with the valid code");
-        }
-        Author author=optionalAuthor.get();
-        AuthorResponse authorResponse=AuthorTransformer.authorToAuthorResponse(author);
-        return authorResponse;
-    }
-    public AuthorResponse findAuthorByAuthorEmail(String email) throws AuthorNotFoundException {
-        Optional<Author>optionalAuthor=authorRepository.findAuthorByEmail(email);
-        if(!optionalAuthor.isPresent()){
-            throw new AuthorNotFoundException("Author not found with the particular author email: "+email+". Try again with the valid email");
-        }
-        Author author=optionalAuthor.get();
-        AuthorResponse authorResponse=AuthorTransformer.authorToAuthorResponse(author);
-        return authorResponse;
-    }
-    public List<BookResponse> getBookListByAuthorCode(String authorCode)  {
-        Author author=authorRepository.findAuthorByAuthorCode(authorCode).get();
-        List<Book>bookList=author.getBookList();
-        List<BookResponse>bookResponseList=new ArrayList<>();
-        for(Book book: bookList){
-            BookResponse bookResponse= BookTransformer.bookToBookResponse(book);
-            bookResponseList.add(bookResponse);
-        }
-        return bookResponseList;
-    }
-
-    //below method or function is used for internal purpose
-    private Author getAuthorEntityByAuthorCode(String authorCode) throws AuthorNotFoundException {
-        Optional<Author>optionalAuthor=authorRepository.findAuthorByAuthorCode(authorCode);
-        if(!optionalAuthor.isPresent()){
-            throw new AuthorNotFoundException("Author not found with the particular author code: "+authorCode+". Try again with the valid code");
-        }
-        return optionalAuthor.get();
+        return "Author " + author.getName() + " is removed from the database successfully";
     }
 
 }

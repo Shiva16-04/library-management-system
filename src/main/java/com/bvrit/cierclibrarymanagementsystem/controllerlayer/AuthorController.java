@@ -1,7 +1,6 @@
 package com.bvrit.cierclibrarymanagementsystem.controllerlayer;
 
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.AuthorRequest;
-import com.bvrit.cierclibrarymanagementsystem.exceptions.AuthorNotFoundException;
 import com.bvrit.cierclibrarymanagementsystem.servicelayer.AuthorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,34 +21,11 @@ public class AuthorController {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    @GetMapping("/find-author-by-author-code")
-    public ResponseEntity findAuthorByAuthorCode(@RequestParam String authorCode){
+
+    @DeleteMapping("/delete-author")
+    public ResponseEntity deleteAuthor(@RequestParam String authorCode){
         try {
-            return new ResponseEntity<>(authorService.findAuthorByAuthorCode(authorCode), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    @GetMapping("/find-author-by-author-email")
-    public ResponseEntity findAuthorByAuthorEmail(@RequestParam String authorEmail){
-        try {
-            return new ResponseEntity<>(authorService.findAuthorByAuthorEmail(authorEmail), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    @GetMapping("/get-book-list-by-author-code")
-    public ResponseEntity getBookListByAuthorCode(@RequestParam String authorCode){
-        try {
-            return new ResponseEntity<>(authorService.getBookListByAuthorCode(authorCode), HttpStatus.OK);
-        } catch (AuthorNotFoundException e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    @DeleteMapping("/delete-author-by-author-code")
-    public ResponseEntity deleteAuthorByAuthorCode(@RequestParam String authorCode){
-        try {
-            return new ResponseEntity<>(authorService.deleteAuthorByAuthorCode(authorCode), HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(authorService.deleteAuthor(authorCode), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -63,8 +39,7 @@ public class AuthorController {
                                                 @RequestParam(required = false) Double minRating,
                                                 @RequestParam(required = false) Double maxRating,
                                                 @RequestParam(required = false) String email){
-        return new ResponseEntity<>(authorService.getAuthorFilteredList(authorCode, bookCode, name, minAge, maxAge, minRating, maxRating, email), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(authorService.getFilteredAuthorResponseList(authorCode, bookCode, name, minAge, maxAge, minRating, maxRating, email), HttpStatus.ACCEPTED);
 
     }
-
 }
