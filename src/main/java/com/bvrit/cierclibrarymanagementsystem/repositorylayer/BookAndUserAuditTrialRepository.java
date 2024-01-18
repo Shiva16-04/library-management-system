@@ -13,8 +13,6 @@ import java.util.Optional;
 
 public interface BookAndUserAuditTrialRepository extends JpaRepository<BookAndUserAuditTrial, Integer> {
 
-    Optional<BookAndUserAuditTrial> findByIssueReturnCode(String code);
-
     @Query(value = "SELECT * FROM book_and_user_audit_trial b " +
             "WHERE (:issueReturnCode IS NULL OR b.issue_return_code = :issueReturnCode) " +
             "AND (:userCode IS NULL OR b.card_code = :userCode )" +
@@ -40,14 +38,12 @@ public interface BookAndUserAuditTrialRepository extends JpaRepository<BookAndUs
             @Param("returnedOnEnd") LocalDate returnedOnEnd,
             @Param("returnedOnIsNull") Boolean returnedOnIsNull
     );
-
-    Optional<BookAndUserAuditTrial> findByBookCodeAndCardCodeAndStatus(String bookCode, String cardCode, BookAndUserAuditStatus status);
     @Modifying
     @Query(value = " UPDATE book_and_user_audit_trial b SET b.status = :newStatus WHERE b.issue_return_code = :issueReturnCode", nativeQuery = true)
     int updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(@Param("issueReturnCode")String issueReturnCode, @Param("newStatus") String newStatus);
 
     @Query(value = "SELECT MAX(CAST(SUBSTRING(issue_return_code, 7) AS SIGNED)) FROM book_and_user_audit_trial WHERE SUBSTRING(issue_return_code, 1, 4) = :year", nativeQuery = true)
     Long findLatestSequenceNumber(@Param("year") String year);
-    List<BookAndUserAuditTrial> findByStatusIn(List<BookAndUserAuditStatus> bookAndUserAuditStatusList);
+
 
 }

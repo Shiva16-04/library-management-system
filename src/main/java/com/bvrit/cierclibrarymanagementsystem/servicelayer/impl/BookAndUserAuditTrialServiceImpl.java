@@ -104,8 +104,9 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
     public String issueBook(String userCode, String bookCode)throws Exception{
         Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);
-        User user=userService.findUserByUserCode(userCode);
+        User user=userService.getFilteredUserList(userCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
         Card card=user.getCard();
+
 
         //handled exception if limit of no of books issued per user reaches max limit
         if(card.getBookList().size()==MAX_BOOKS_ISSUE_PER_USER){
@@ -177,7 +178,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         calculateFineAmount(issueReturnCode, 0);
 
         Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);;
-        User user=userService.findUserByUserCode(userCode);
+        User user=userService.getFilteredUserList(userCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
         Card card=user.getCard();
 
         //handling user card
@@ -235,7 +236,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
             BookAndUserAuditStatus bookAndUserAuditStatus=bookAndUserAuditTrial.getStatus();
             int fineAmount=calculateFineAmount(issueReturnCode, 0);
             if(fineAmount>0){
-                UserResponse userResponse=userService.getUserByUserCode(userCode);
+                UserResponse userResponse=userService.getFilteredUserResponseList(userCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
                 BookResponse bookResponse=bookService.getFilteredBookResponseList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);
 
                 bookAndUserAuditTrialRepository.updateBookAndUserAuditTrialStatusByIssueReturnCodeAndStatus(issueReturnCode, newStatus.toString());
@@ -264,7 +265,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
 
         //finding book and user from the attributes
         Book book=bookService.getFilteredBookList(bookCode, null, null, null, null, null, null, null,null,null,null,null).get(0);;
-        User user=userService.findUserByUserCode(cardCode);
+        User user=userService.getFilteredUserList(cardCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
         Card card=user.getCard();
 
         if(card.getStatus()==CardStatus.FREEZE || card.getStatus()==CardStatus.BLOCKED || card.getStatus()==CardStatus.EXPIRED){
@@ -319,7 +320,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         }
         List<UserResponse>userResponseList=new ArrayList<>();
         for(BookAndUserAuditTrial bookAndUserAuditTrial: bookAndUserAuditTrialList){
-            User user=userService.findUserByUserCode(bookAndUserAuditTrial.getCardCode());
+            User user=userService.getFilteredUserList(bookAndUserAuditTrial.getBookCode(), null, null, null, null, null, null, null, null, null, null, null).get(0);
             UserResponse userResponse= UserTransformer.userToUserResponse(user);
             userResponseList.add(userResponse);
         }
@@ -337,7 +338,7 @@ public class BookAndUserAuditTrialServiceImpl implements BookAndUserAuditTrialSe
         }
         BookAndUserAuditTrial bookAndUserAuditTrial=bookAndUserAuditTrialList.get(0);
         String userCode=bookAndUserAuditTrial.getCardCode();
-        User user=userService.findUserByUserCode(userCode);
+        User user=userService.getFilteredUserList(userCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
         Card card=user.getCard();
         CardStatus cardStatus=card.getStatus();
 

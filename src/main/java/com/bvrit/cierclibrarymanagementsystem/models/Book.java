@@ -32,7 +32,6 @@ public class Book {
     @Column(nullable = false)
     double rating;
     @ManyToMany(cascade = CascadeType.PERSIST)
-    @Column(nullable = false)
     List<Genre> genreList;
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)

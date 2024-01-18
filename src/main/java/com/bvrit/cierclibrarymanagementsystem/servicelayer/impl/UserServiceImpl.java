@@ -5,6 +5,7 @@ import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserEmailVerificationCodeRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.requestdtos.UserRequest;
 import com.bvrit.cierclibrarymanagementsystem.dtos.responsedtos.UserResponse;
+import com.bvrit.cierclibrarymanagementsystem.enums.BloodGroup;
 import com.bvrit.cierclibrarymanagementsystem.enums.CardStatus;
 import com.bvrit.cierclibrarymanagementsystem.enums.Role;
 import com.bvrit.cierclibrarymanagementsystem.enums.TransactionStatus;
@@ -45,9 +46,59 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private AuthenticationDetailsService authenticationDetailsService;
 
+
+    public List<UserResponse> getFilteredUserResponseList(String userCode, String userName, List<Role>roles, BloodGroup bloodGroup,
+                                                          String contactNumber, String email, Integer minFineAmount, Integer maxFineAmount,
+                                                          List<CardStatus>cardStatuses, Integer numberOfBooksIssued, String bookCode,
+                                                          String bookName){
+        List<UserResponse>userResponseList=new ArrayList<>();
+        List<User>userList=getFilteredUserList(userCode, userName, roles, bloodGroup,
+                contactNumber, email, minFineAmount, maxFineAmount, cardStatuses, numberOfBooksIssued,
+                bookCode, bookName);
+
+        userResponseList=userListToUserResponseList(userList);
+        return userResponseList;
+    }
+    public List<User> getFilteredUserList(String userCode, String userName, List<Role>roles, BloodGroup bloodGroupEnum,
+                                          String contactNumber, String email, Integer minFineAmount, Integer maxFineAmount,
+                                          List<CardStatus>cardStatuses, Integer numberOfBooksIssued, String bookCode,
+                                          String bookName){
+        List<String>roleStringList=new ArrayList<>();
+        if(roles!=null && !roles.isEmpty()){
+            for(Role role:roles)roleStringList.add(role.toString());
+        }else{
+            roleStringList=getRoleStringList(roles);
+        }
+        List<String>cardStausStringList=new ArrayList<>();
+        if(cardStatuses!=null && !cardStatuses.isEmpty()){
+            for (CardStatus cardStatus: cardStatuses)cardStausStringList.add(cardStatus.toString());
+        }else{
+            cardStausStringList=getCardStatusStringList(cardStatuses);
+        }
+        String bloodGroup= bloodGroupEnum!=null?bloodGroupEnum.toString():null;
+
+        return userRepository.getFilteredUserList(userCode, userName, roleStringList, bloodGroup,
+                contactNumber, email, minFineAmount, maxFineAmount, cardStausStringList, numberOfBooksIssued,
+                bookCode, bookName);
+    }
+    private List<String> getRoleStringList(List<Role>roleList){
+        List<String>roleStringList=new ArrayList<>();
+        for(Role role: Role.values()){
+            roleStringList.add(role.toString());
+        }
+        return roleStringList;
+    }
+    private List<String> getCardStatusStringList(List<CardStatus>cardStatuses){
+        List<String>cardStausStringList=new ArrayList<>();
+        for(CardStatus cardStatus: CardStatus.values()){
+            cardStausStringList.add(cardStatus.toString());
+        }
+        return cardStausStringList;
+    }
+
     public String addUser(UserRequest userRequest, Role role)throws Exception{
-        Optional<User>optionalUser=userRepository.findUserByEmail(userRequest.getEmail());
-        if(optionalUser.isPresent()){
+        List<User>userList=getFilteredUserList(null, null, null, null, null, userRequest.getEmail(), null, null, null, null, null, null);
+        if(userList.size()>0){
             throw new UserAlreadyPresentException("User already Registered");
         }
         //validating the match of password and retype password
@@ -78,7 +129,7 @@ public class UserServiceImpl implements UserService {
         List<String>removedUserCodeList=new ArrayList<>();
         List<String>notRemovedUserCodeList=new ArrayList<>();
         for(String userCode: userCodeList){
-            User user=findUserByUserCode(userCode);
+            User user=getFilteredUserList(userCode, null, null, null, null, null, null, null, null, null, null, null).get(0);
             if(user.getCard().getBookList().size()==0){
 
                 userRepository.deleteById(user.getId());
@@ -110,25 +161,6 @@ public class UserServiceImpl implements UserService {
         mailConfigurationService.mailSender("applicationtesting1604@gmail.com",email, code, "Email Validation Code");
         return "Verification code sent successfully to the mail"+email;
     }
-    public UserResponse getUserByUserCode(String userCode) throws UserNotFoundException {
-        Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
-        if(!optionalUser.isPresent()){
-            throw new UserNotFoundException("User with the particular user code "+userCode+" is not present in the database");
-        }
-        User user=optionalUser.get();
-        UserResponse userResponse=UserTransformer.userToUserResponse(user);
-        return userResponse;
-    }
-    public UserResponse getUserByUserEmail(String userEmail) throws UserNotFoundException {
-        Optional<User>optionalUser=userRepository.findUserByEmail(userEmail);
-        if(!optionalUser.isPresent()){
-            throw new UserNotFoundException("User with the particular user email "+userEmail+" is not present in the database");
-        }
-        User user=optionalUser.get();
-        UserResponse userResponse=UserTransformer.userToUserResponse(user);
-        return userResponse;
-    }
-
 
     //below methods are used for internal purposes...not for api calling
     private boolean mailValidation(String email, String code)throws Exception{
@@ -141,12 +173,12 @@ public class UserServiceImpl implements UserService {
             throw  new InValidEmailVerificationCodeException("Invalid Code");
         }
     }
-    public User findUserByUserCode(String userCode)throws Exception{
-        Optional<User>optionalUser=userRepository.findUserByUserCode(userCode);
-        if(!optionalUser.isPresent()){
-            throw new UserNotFoundException("User with the particular user code "+userCode+" is not present in the database");
+    List<UserResponse> userListToUserResponseList(List<User>userList){
+        List<UserResponse>userResponseList=new ArrayList<>();
+        for(var user: userList){
+            userResponseList.add(UserTransformer.userToUserResponse(user));
         }
-        return optionalUser.get();
+        return userResponseList;
     }
 
 }

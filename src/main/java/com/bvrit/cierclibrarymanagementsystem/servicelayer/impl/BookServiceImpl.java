@@ -78,7 +78,7 @@ public class BookServiceImpl implements BookService {
         List<String>genreList=new ArrayList<>();
         if(genres != null && !genres.isEmpty()){
             for(GenreEnum genreEnum: genres){
-                genreList.add(genreEnum.getDisplayName());
+                genreList.add(genreEnum.toString());
             }
         }else{
             genreList=getGenreStringList();
@@ -97,7 +97,7 @@ public class BookServiceImpl implements BookService {
     private List<String> getGenreStringList(){
         List<String>genreList=new ArrayList<>();
         for(GenreEnum genreEnum: GenreEnum.values()){
-            genreList.add(genreEnum.getDisplayName());
+            genreList.add(genreEnum.toString());
         }
         return genreList;
     }
